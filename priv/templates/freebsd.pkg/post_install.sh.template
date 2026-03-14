@@ -1,0 +1,34 @@
+PKG_NAME="{{ pkg_name }}"
+CONFIG_DIR="{{ config_dir }}"
+CONFIG_FILE="{{config_dir}}/{{env_file_name}}"
+
+{{#if pkg_user }}
+PKG_USER="{{ pkg_username }}"
+
+if [ -n "${PKG_ROOTDIR}" ] && [ "${PKG_ROOTDIR}" != "/" ]; then
+  PW="/usr/sbin/pw -R ${PKG_ROOTDIR}"
+else
+  PW=/usr/sbin/pw
+fi
+
+echo "===> Creating user."
+if ! ${PW} groupshow ${PKG_USER} >/dev/null 2>&1; then
+  echo "Group: '${PKG_USER}'."
+  ${PW} groupadd ${PKG_USER}
+else
+  echo "Using existing group: '${PKG_USER}'."
+fi
+
+if ! ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then
+  echo "User: '${PKG_USER}'."
+  ${PW} useradd ${PKG_USER} -g ${PKG_USER} -c "${PKG_NAME} user" -d /nonexistent -s /usr/sbin/nologin
+else
+  echo "Using existing user: '${PKG_USER}'."
+fi
+{{/if }}
+
+if [ ! -f $CONFIG_FILE ]
+then
+  echo "===> Creating config in ${CONFIG_FILE}"
+  cp ${CONFIG_DIR}/{{ env_file_name }}.sample $CONFIG_FILE
+fi

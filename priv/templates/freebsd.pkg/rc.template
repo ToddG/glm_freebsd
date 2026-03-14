@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# PROVIDE: {{ pkg_name }}
+# REQUIRE: DAEMON
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name={{ pkg_name }}
+rcvar=${name}_enable
+
+load_rc_config $name
+
+pidfile="/var/run/${name}.pid"
+procname="{{ pkg_prefix }}/{{ beam_path }}"
+confdir="{{ conf_dir }}"
+logfile="/var/log/${name}.log"
+
+{{ pkg_name }}_env_file:="{{ conf_dir }}/{{ pkg_name }}.env"
+
+command="{{ pkg_prefix }}/{{ bin_path }}"
+start_precmd="${name}_prestart"
+start_postcmd="${name}_poststart"
+start_cmd="${name}_start"
+remote_cmd="${name}_remote"
+extra_commands="remote"
+
+{{ conf_dir_var }}_CONF_DIR:="${confdir}"
+: ${RELEASE_TMP:="/var/run/${name}"}
+: ${ERL_CRASH_DUMP:="${RELEASE_TMP}/${name}_erl_crash.dump"}
+
+{{ pkg_name }}_prestart()
+{
+  if [ ! -d "${RELEASE_TMP}" ]; then
+    echo "Creating ${RELEASE_TMP}."
+    mkdir $RELEASE_TMP
+    chmod 740 $RELEASE_TMP
+{{#if pkg_user }}
+    echo "Setting ${RELEASE_TMP} owner to {{ pkg_username }}."
+    chown -R {{ pkg_username }}:{{ pkg_username }} $RELEASE_TMP
+{{/if }}
+  fi
+}
+
+{{ pkg_name }}_poststart()
+{
+  pid="$(cat ${pidfile})"
+  echo "Service ${name} started as pid ${pid}."
+}
+
+{{ pkg_name }}_start()
+{
+  export {{ conf_dir_var }}_CONF_DIR RELEASE_TMP ERL_CRASH_DUMP
+
+  rm -f ${pidfile}
+  daemon -t $name -p $pidfile -f -H -o $logfile {{ daemon_flags }} $command start
+}
+
+{{ pkg_name }}_remote()
+{
+  export TERM=xterm
+  $command remote
+}
+
+run_rc_command "$@"
