@@ -1,12 +1,9 @@
 name = "glm_freebsd"
-version = "1.0.0"
+version = "0.0.1"
 
-# Fill out these fields if you intend to generate HTML documentation or publish
-# your project to the Hex package manager.
-#
-# description = ""
-# licences = ["Apache-2.0"]
-# repository = { type = "github", user = "", repo = "" }
+description = "CLI tool to package a Gleam app as a FreeBSD package, with a service script."
+licences = ["Apache-2.0"]
+repository = { type = "github", user = "toddg", repo = "https://github.com/ToddG/glm_freebsd.git" }
 # links = [{ title = "Website", href = "" }]
 #
 # For a full reference of all the available options, you can have a look at
@@ -14,6 +11,9 @@ version = "1.0.0"
 
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+yodel = ">= 2.0.1 and < 3.0.0"
+clip = ">= 1.2.0 and < 2.0.0"
+handles = ">= 5.0.0 and < 6.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
