@@ -1,0 +1,27 @@
+name = "example"
+version = "1.0.0"
+
+description = "An example app that will be used to create a FreeBSD package (with service scripts)."
+repository = { type = "github", user = "someuser", repo = "git@github.com:someuser/example_app.git" }
+
+[dependencies]
+gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+
+[dev-dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
+
+[freebsd]
+pkg_user = true
+pkg_description = "This is a longer description .........................................................."
+pkg_maintainer = "someone@example.com"
+
+[freebsd.deps]
+list = "pstree,cdiff"
+
+[freebsd.deps.pstree]
+version = "2.36"
+origin = "sysutils/pstree"
+
+[freebsd.deps.cdiff]
+version = "0.9.6.20140711,1"
+origin = "textproc/cdiff"

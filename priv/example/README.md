@@ -1,4 +1,4 @@
-# example_app
+# example
 
 [![Package Version](https://img.shields.io/hexpm/v/example_app)](https://hex.pm/packages/example_app)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/example_app/)

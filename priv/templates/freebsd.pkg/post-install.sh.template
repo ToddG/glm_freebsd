@@ -1,6 +1,6 @@
 PKG_NAME="{{ pkg_name }}"
-CONFIG_DIR="{{ config_dir }}"
-CONFIG_FILE="{{config_dir}}/{{env_file_name}}"
+CONFIG_DIR="{{ pkg_config_dir }}"
+CONFIG_FILE="{{ pkg_config_dir }}/{{ pkg_env_file }}"
 
 {{#if pkg_user }}
 PKG_USER="{{ pkg_username }}"
@@ -30,5 +30,6 @@ fi
 if [ ! -f $CONFIG_FILE ]
 then
   echo "===> Creating config in ${CONFIG_FILE}"
-  cp ${CONFIG_DIR}/{{ env_file_name }}.sample $CONFIG_FILE
+  echo "# {{ pkg_name }} config file" > $CONFIG_FILE
+  echo 'FOO="bar"' >> $CONFIG_FILE
 fi

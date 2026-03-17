@@ -12,20 +12,22 @@ rcvar=${name}_enable
 load_rc_config $name
 
 pidfile="/var/run/${name}.pid"
-procname="{{ pkg_prefix }}/{{ beam_path }}"
-confdir="{{ conf_dir }}"
+procname="/bin/sh"
+confdir="{{ pkg_config_dir }}"
 logfile="/var/log/${name}.log"
 
-{{ pkg_name }}_env_file:="{{ conf_dir }}/{{ pkg_name }}.env"
+{{ pkg_name }}_env_file="{{ pkg_config_dir }}/{{ pkg_env_file }}"
 
-command="{{ pkg_prefix }}/{{ bin_path }}"
+command="{{ pkg_prefix }}/{{ pkg_name }}/entrypoint.sh"
+command_args=" run"
+command_interpreter="/bin/sh"
 start_precmd="${name}_prestart"
 start_postcmd="${name}_poststart"
 start_cmd="${name}_start"
 remote_cmd="${name}_remote"
 extra_commands="remote"
 
-{{ conf_dir_var }}_CONF_DIR:="${confdir}"
+{{ pkg_conf_dir_uppercase }}_CONF_DIR="${confdir}"
 : ${RELEASE_TMP:="/var/run/${name}"}
 : ${ERL_CRASH_DUMP:="${RELEASE_TMP}/${name}_erl_crash.dump"}
 
@@ -50,16 +52,21 @@ extra_commands="remote"
 
 {{ pkg_name }}_start()
 {
-  export {{ conf_dir_var }}_CONF_DIR RELEASE_TMP ERL_CRASH_DUMP
+  export {{ pkg_conf_dir_uppercase }}_CONF_DIR RELEASE_TMP ERL_CRASH_DUMP
 
   rm -f ${pidfile}
-  daemon -t $name -p $pidfile -f -H -o $logfile {{ daemon_flags }} $command start
+{{#if pkg_user }}
+  daemon -t $name -p $pidfile -f -H -o $logfile -u {{ pkg_username }} {{ pkg_daemon_flags }} $command $command_args
+{{/if}}
+{{#unless pkg_user}}
+  daemon -t $name -p $pidfile -f -H -o $logfile {{ pkg_daemon_flags }} $command $command_args
+{{/unless}}
 }
 
 {{ pkg_name }}_remote()
 {
   export TERM=xterm
-  $command remote
+  $command {{ pkg_prefix }}/{{ pkg_name }}/entrypoint.sh shell
 }
 
 run_rc_command "$@"

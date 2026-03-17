@@ -1,4 +1,4 @@
-CONFIG_DIR="{{ config_dir }}"
+CONFIG_DIR="{{ pkg_config_dir }}"
 
 {{#if pkg_user }}
 PKG_USER="{{ pkg_username }}"
@@ -20,8 +20,8 @@ then
   echo "  rm -rf ${CONFIG_DIR}"
 fi
 
-if [ -d "{{ var_dir }}" ]
+if [ -d "{{ pkg_var_dir }}" ]
 then
-  echo "==> run directory '{{ var_dir }}' should be manually removed."
-  echo "  rm -rf {{ var_dir }}"
+  echo "==> run directory '{{ pkg_var_dir }}' should be manually removed."
+  echo "  rm -rf {{ pkg_var_dir }}"
 fi
