@@ -3,7 +3,7 @@ version = "1.0.0"
 
 description = "CLI tool to package a Gleam app as a FreeBSD package, with a service script."
 licences = ["Apache-2.0"]
-repository = { type = "github", user = "toddg", repo = "https://github.com/ToddG/glm_freebsd.git" }
+repository = { type = "github", user = "toddg", repo = "glm_freebsd.git" }
 # links = [{ title = "Website", href = "" }]
 #
 # For a full reference of all the available options, you can have a look at
