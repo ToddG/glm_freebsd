@@ -44,7 +44,7 @@ pub fn main() -> Nil {
       let input_path = app.input
       let output_path = app.output
       let gleam_toml_path = input_path <> "/gleam.toml"
-      let config = config.load_toml(gleam_toml_path)
+      let config = config.load_toml(gleam_toml_path, output_path)
       let assert Ok(_) = simplifile.create_directory_all(output_path)
       let _ = freebsd_templates.gen_files_from_templates(config, output_path)
       let _ = freebsd_build.run_build(config, input_path, output_path)

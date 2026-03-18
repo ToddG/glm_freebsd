@@ -35,7 +35,7 @@ pub type Config {
   )
 }
 
-pub fn load_toml(path: String) -> Config {
+pub fn load_toml(path: String, output_path: String) -> Config {
   case yodel.load(path) {
     Ok(config) -> {
       let pkg_name = yodel.get_string_or(config, "name", "ERROR")
@@ -45,15 +45,20 @@ pub fn load_toml(path: String) -> Config {
         yodel.get_string_or(
           config,
           "freebsd.pkg_scripts",
-          "post-install=./priv/templates/freebsd.pkg/post_install.sh,pre-deinstall=./priv/templates/freebsd.pkg/pre_deinstall.sh",
+          "post-install=post-install.sh,pre-deinstall=pre-deinstall.sh",
         )
       let pkg_scripts=pkg_scripts_str |> string.split(",")
       let pkg_scripts_dict =
       pkg_scripts
       |> list.map(fn(s){string.split_once(s, "=")})
       |> list.filter_map(fn(s){s})
+      |> list.map(fn(t){
+        let #(key, script) = t
+        let script_path = output_path <> "/" <> script
+        #(key, script_path)
+        }
+      )
       |> dict.from_list
-
 
       let freebsd_deps_list = yodel.get_string_or(
       config,
@@ -62,19 +67,14 @@ pub fn load_toml(path: String) -> Config {
       )
       |> string.split(",")
 
-      io.println("DEBUG: freebsd_deps_list = " <> string.inspect(freebsd_deps_list))
-
       let deps_dict =
       freebsd_deps_list
       |> list.map(fn(dep){
         let version = yodel.get_string_or(config, "freebsd.deps." <> dep <> ".version", "ERROR")
         let origin = yodel.get_string_or(config, "freebsd.deps." <> dep <> ".origin", "ERROR")
-        io.println("dep = " <> dep <> ", verison = " <> version <> ", origin = " <> origin)
         #(dep, dict.from_list([#("version", version), #("origin", origin)]))
       })
       |> dict.from_list
-
-      io.println("DEBUG: deps_dict: " <> string.inspect(deps_dict))
 
       Config(
         pkg_dependencies: deps_dict,

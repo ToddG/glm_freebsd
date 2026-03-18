@@ -1,6 +1,5 @@
 import config
-import freebsd_packaging.{FreeBSDManifest}
-import gleam/dict
+import gleam/dict.{type Dict}
 import gleam/io
 import gleam/json
 import gleam/list
@@ -9,6 +8,22 @@ import gleam/set
 import gleam/string
 import shellout.{type Lookups}
 import simplifile.{Execute, FilePermissions, Read, Write}
+
+pub type FreeBSDManifest {
+  FreeBSDManifest(
+    name: String,
+    version: String,
+    origin: String,
+    comment: String,
+    www: String,
+    maintainer: String,
+    prefix: String,
+    desc: String,
+    scripts: Dict(String, String),
+    deps: Dict(String, Dict(String, String)),
+    users: List(String),
+  )
+}
 
 pub const lookups: Lookups = [
   #(
@@ -60,6 +75,7 @@ pub fn run_build(cfg: config.Config, input_path: String, output_path: String) {
   stage(cfg, input_path, output_path)
 
   rc(cfg, output_path)
+  rc_conf(cfg, output_path)
 
   plist(cfg, output_path)
 
@@ -94,7 +110,9 @@ fn stage(cfg: config.Config, input_path: String, output_path: String) {
             <> ", error: "
             <> string.inspect(e),
           )
-          io.println_error("have you run `gleam export erlang-shipment` in your target project?")
+          io.println_error(
+            "have you run `gleam export erlang-shipment` in your target project?",
+          )
           panic
         }
         Ok(_) -> {
@@ -164,7 +182,7 @@ fn make_sample_env_file(cfg: config.Config, output_path: String) {
                   panic
                 }
                 Ok(_) -> {
-                  io.println("wrote example env file: " <> env_sample_file)
+                  io.println("wrote " <> env_sample_file)
                 }
               }
             }
@@ -175,13 +193,46 @@ fn make_sample_env_file(cfg: config.Config, output_path: String) {
   }
 }
 
-fn write_manifest(
-  manifest: freebsd_packaging.FreeBSDManifest,
-  output_path: String,
-) {
+fn write_manifest(manifest: FreeBSDManifest, output_path: String) {
   let tmp_dir = tmp_dir(output_path)
   let assert Ok(_) = simplifile.create_directory_all(tmp_dir)
   let manifest_file = manifest_file(output_path)
+
+  // load scripts
+  let keys = dict.keys(manifest.scripts)
+  let scripts_dict =
+    keys
+    |> list.map(fn(key) {
+      case dict.get(manifest.scripts, key) {
+        Error(e) -> {
+          io.println_error(
+            "unable to retrieve script for key: "
+            <> key
+            <> ", error: "
+            <> string.inspect(e),
+          )
+          panic
+        }
+        Ok(script_path) -> {
+          case simplifile.read(script_path) {
+            Error(e) -> {
+              io.println_error(
+                "unable to read script: "
+                <> script_path
+                <> ", for key:"
+                <> key
+                <> ", error: "
+                <> string.inspect(e),
+              )
+              panic
+            }
+            Ok(text) -> #(key, text)
+          }
+        }
+      }
+    })
+    |> dict.from_list
+
   case
     json.object([
       #("name", json.string(manifest.name)),
@@ -192,9 +243,14 @@ fn write_manifest(
       #("maintainer", json.string(manifest.maintainer)),
       #("prefix", json.string(manifest.prefix)),
       #("desc", json.string(manifest.desc)),
-      #("scripts", json.dict(manifest.scripts, fn(k){k}, json.string)),
-      #("deps", json.dict(manifest.deps, fn(k){k}, fn(d){json.dict(d, fn(k){k}, json.string)})),
-      #("users", json.array(manifest.users, of: json.string))
+      #("scripts", json.dict(scripts_dict, fn(k) { k }, json.string)),
+      #(
+        "deps",
+        json.dict(manifest.deps, fn(k) { k }, fn(d) {
+          json.dict(d, fn(k) { k }, json.string)
+        }),
+      ),
+      #("users", json.array(manifest.users, of: json.string)),
     ])
     |> json.to_string
     |> simplifile.write(manifest_file, _)
@@ -210,9 +266,64 @@ fn write_manifest(
   }
 }
 
+fn rc_conf(cfg: config.Config, output_path: String) {
+  let install_dir = install_dir(output_path, cfg)
+  let etc_dir = install_dir <> "/etc"
+  let rc_conf_dir = etc_dir <> "/rc.conf.d"
+  let rc_conf_file = rc_conf_dir <> "/" <> cfg.pkg_name
+  let rc_conf_source_file = output_path <> "/rc_conf"
+
+  case simplifile.create_directory_all(rc_conf_dir) {
+    Error(e) -> {
+      io.println_error(
+        "unable to create rc_conf_dir:"
+        <> rc_conf_dir
+        <> ", error: "
+        <> string.inspect(e),
+      )
+      panic
+    }
+    Ok(_) -> {
+      case simplifile.copy_file(rc_conf_source_file, rc_conf_file) {
+        Error(e) -> {
+          io.println_error(
+            "unable to write rc_conf, source:"
+            <> rc_conf_source_file
+            <> ", target: "
+            <> rc_conf_file
+            <> ", error: "
+            <> string.inspect(e),
+          )
+          panic
+        }
+        Ok(_) -> {
+          let perms =
+            FilePermissions(user: four(), group: four(), other: zero())
+          case simplifile.set_permissions(rc_conf_file, to: perms) {
+            Error(e) -> {
+              io.println_error(
+                "unable to set permissions on rc_conf_file: "
+                <> rc_conf_file
+                <> " to perms: "
+                <> string.inspect(perms)
+                <> ", error: "
+                <> string.inspect(e),
+              )
+              panic
+            }
+            Ok(_) -> {
+              io.println("wrote " <> rc_conf_file)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 fn rc(cfg: config.Config, output_path: String) {
   let install_dir = install_dir(output_path, cfg)
-  let etc_dir = install_dir <> cfg.pkg_prefix
+  let etc_dir = install_dir <> "/etc"
   let rc_dir = etc_dir <> "/rc.d"
   let rc_file = rc_dir <> "/" <> cfg.pkg_name
 
@@ -304,10 +415,6 @@ fn rel_dir(input_path: String) -> String {
   input_path <> "/build/erlang-shipment"
 }
 
-//fn pkg_file(cfg: config.Config) -> String {
-//  cfg.pkg_name <> "-" <> cfg.pkg_version <> ".pkg"
-//}
-
 fn recursive_files(dir: String) -> List(String) {
   do_recursive_files([dir], [])
 }
@@ -348,11 +455,11 @@ fn do_recursive_files(
         Ok(False) -> {
           case simplifile.is_symlink(h), simplifile.is_file(h) {
             Ok(False), Ok(True) -> {
-              io.println("target is a file, adding: " <> h)
+              //io.println("target is a file, adding: " <> h)
               do_recursive_files(rest, [h, ..outputs])
             }
             Ok(True), Ok(False) -> {
-              io.println("targetfile is a symlink, adding: " <> h)
+              //io.println("targetfile is a symlink, adding: " <> h)
               do_recursive_files(rest, [h, ..outputs])
             }
             _, _ -> {
@@ -393,21 +500,22 @@ fn pkg(output_path: String) {
     tmp_dir <> "/pkg-plist",
   ]
 
-  let _ = shellout.command(run: "pkg", in: ".", with: args, opt: [])
-  |> result.map(with: fn(output) {
-    io.print(output)
-    0
-  })
-  |> result.map_error(with: fn(detail) {
-    let #(status, message) = detail
-    let style =
-      shellout.display(["bold", "italic"])
-      |> dict.merge(from: shellout.color(["pink"]))
-      |> dict.merge(from: shellout.background(["brightblack"]))
-    message
-    |> shellout.style(with: style, custom: lookups)
-    |> io.print_error
-    status
-  })
+  let _ =
+    shellout.command(run: "pkg", in: ".", with: args, opt: [])
+    |> result.map(with: fn(output) {
+      io.print(output)
+      0
+    })
+    |> result.map_error(with: fn(detail) {
+      let #(status, message) = detail
+      let style =
+        shellout.display(["bold", "italic"])
+        |> dict.merge(from: shellout.color(["pink"]))
+        |> dict.merge(from: shellout.background(["brightblack"]))
+      message
+      |> shellout.style(with: style, custom: lookups)
+      |> io.print_error
+      status
+    })
   Nil
 }

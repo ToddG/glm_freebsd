@@ -6,6 +6,7 @@ repository = { type = "github", user = "someuser", repo = "git@github.com:someus
 
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+gleam_erlang = ">= 1.3.0 and < 2.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
@@ -14,14 +15,15 @@ gleeunit = ">= 1.0.0 and < 2.0.0"
 pkg_user = true
 pkg_description = "This is a longer description .........................................................."
 pkg_maintainer = "someone@example.com"
+pkg_scripts = "post-install=post-install.sh,pre-deinstall=pre-deinstall.sh"
 
 [freebsd.deps]
-list = "pstree,cdiff"
+list = "pstree,tree"
 
 [freebsd.deps.pstree]
 version = "2.36"
 origin = "sysutils/pstree"
 
-[freebsd.deps.cdiff]
-version = "0.9.6.20140711,1"
-origin = "textproc/cdiff"
+[freebsd.deps.tree]
+version = "2.2.1"
+origin = "sysutils/tree"

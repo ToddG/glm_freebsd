@@ -1,15 +1,11 @@
 # glm_freebsd
 
-A Gleam package that allows you to easily create FreeBSD packages for your Gleam applications, along with a service script to manage the application's lifecycle.
+A Gleam package that allows you to easily create FreeBSD packages for your Gleam applications, along with a service script to manage the application (e.g. start|stop).
 
 This is based on https://github.com/patmaddox/ex_freebsd
 
 [![Package Version](https://img.shields.io/hexpm/v/glm_freebsd)](https://hex.pm/packages/glm_freebsd)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glm_freebsd/)
-
-```sh
-//TODO
-```
 
 Further documentation can be found at <https://hexdocs.pm/glm_freebsd>.
 

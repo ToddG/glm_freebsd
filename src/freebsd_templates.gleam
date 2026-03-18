@@ -74,7 +74,7 @@ fn process_template(cfg: config.Config, template_path: String, output_dir: Strin
       let output_text = reify_template(cfg, template_text, template_path)
       case simplifile.write(to: output_file_path, contents: output_text) {
         Ok(_) -> {
-          io.println("wrote: " <> output_file_path)
+          io.println("wrote " <> output_file_path)
         }
         Error(_) -> {
           io.print_error("unable to write output file: " <> output_file_path)
