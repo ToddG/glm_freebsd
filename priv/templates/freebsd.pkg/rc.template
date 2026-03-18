@@ -12,14 +12,16 @@ rcvar=${name}_enable
 load_rc_config $name
 
 pidfile="/var/run/${name}.pid"
-procname="/usr/local/lib/erlang/erts-14.2.5.12/bin/beam.smp"
+procname="{{ pkg_proc_name }}"
 confdir="{{ pkg_config_dir }}"
 logfile="/var/log/${name}.log"
 
+export PATH={{ pkg_path_extensions }}:$PATH
+
 {{ pkg_name }}_env_file="{{ pkg_config_dir }}/{{ pkg_env_file }}"
 
-command="{{ pkg_prefix }}/libexec/{{ pkg_name }}/entrypoint.sh"
-command_args=" run"
+command="{{ pkg_prefix }}/libexec/{{ pkg_name }}/{{ pkg_command }}"
+command_args="{{ pkg_command_args }}"
 start_precmd="${name}_prestart"
 start_postcmd="${name}_poststart"
 start_cmd="${name}_start"
@@ -65,8 +67,6 @@ extra_commands="remote"
 {{ pkg_name }}_remote()
 {
   export TERM=xterm
-  export PATH=/usr/local/lib/erlang28/bin:$PATH
-
   $command shell
 }
 

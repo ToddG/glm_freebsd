@@ -33,6 +33,11 @@ pub type Config {
     pkg_version: String,
     pkg_www: String,
     pkg_var_dir: String,
+    pkg_path_extensions: String,
+    pkg_command: String,
+    pkg_command_args: String,
+    pkg_proc_name: String,
+
   )
 }
 
@@ -103,6 +108,18 @@ fn config(parsed: Dict(String, Toml), output_path: String) -> Config {
     |> dict.from_list
 
   Config(
+    pkg_proc_name: get_string_or(
+      parsed,
+      "freebsd.pkg_proc_name",
+      "/usr/local/lib/erlang28/erts-16.2/bin/beam.smp",
+    ),
+    pkg_path_extensions: get_string_or(
+      parsed,
+      "freebsd.pkg_path_extensions",
+      "/usr/local/lib/erlang28/bin",
+    ),
+    pkg_command: get_string_or(parsed, "freebsd.pkg_command", "entrypoint.sh"),
+    pkg_command_args: get_string_or(parsed, "freebsd.pkg_command_args", "run"),
     pkg_dependencies: deps_dict,
     pkg_bin_path: get_string_or(
       parsed,

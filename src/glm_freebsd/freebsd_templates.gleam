@@ -24,6 +24,11 @@ fn reify_template(cfg: config.Config, template: String, template_path: String) -
             ctx.Prop("pkg_env_file", ctx.Str(cfg.pkg_env_file)),
             ctx.Prop("pkg_var_dir", ctx.Str(cfg.pkg_var_dir)),
             ctx.Prop("pkg_prefix", ctx.Str(cfg.pkg_prefix)),
+          ctx.Prop("pkg_proc_name", ctx.Str(cfg.pkg_proc_name)),
+          ctx.Prop("pkg_path_extensions", ctx.Str(cfg.pkg_path_extensions)),
+          ctx.Prop("pkg_command", ctx.Str(cfg.pkg_command)),
+          ctx.Prop("pkg_command_args", ctx.Str(cfg.pkg_command_args)),
+
           ]),
           [],
         )
