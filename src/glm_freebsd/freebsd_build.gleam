@@ -1,4 +1,3 @@
-import config
 import gleam/dict.{type Dict}
 import gleam/io
 import gleam/json
@@ -6,6 +5,7 @@ import gleam/list
 import gleam/result
 import gleam/set
 import gleam/string
+import glm_freebsd/config
 import shellout.{type Lookups}
 import simplifile.{Execute, FilePermissions, Read, Write}
 

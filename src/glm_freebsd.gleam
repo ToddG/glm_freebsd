@@ -1,11 +1,11 @@
 import argv
-import clip.{type Command}
 import clip/help
 import clip/opt.{type Opt}
+import clip.{type Command}
 import gleam/io
-import freebsd_templates
-import freebsd_build
-import config
+import glm_freebsd/config
+import glm_freebsd/freebsd_build
+import glm_freebsd/freebsd_templates
 import simplifile
 
 type App {
@@ -44,10 +44,10 @@ pub fn main() -> Nil {
       let input_path = app.input
       let output_path = app.output
       let gleam_toml_path = input_path <> "/gleam.toml"
-      let config = config.load_toml(gleam_toml_path, output_path)
+      let cfg = config.load_toml(gleam_toml_path, output_path)
       let assert Ok(_) = simplifile.create_directory_all(output_path)
-      let _ = freebsd_templates.gen_files_from_templates(config, output_path)
-      let _ = freebsd_build.run_build(config, input_path, output_path)
+      let _ = freebsd_templates.gen_files_from_templates(cfg, output_path)
+      let _ = freebsd_build.run_build(cfg, input_path, output_path)
       Nil
     }
   }

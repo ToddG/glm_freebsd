@@ -2,10 +2,10 @@ import gleam/io
 import gleam/list
 import gleam/string
 import gleam/string_tree
+import glm_freebsd/config
 import handles
 import handles/ctx
 import simplifile
-import config
 
 fn reify_template(cfg: config.Config, template: String, template_path: String) -> String {
   case handles.prepare(template) {
