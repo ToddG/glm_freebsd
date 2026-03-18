@@ -88,9 +88,17 @@ The rest of the data comes from the [freebsd] described below:
 | pkg_description         | a longer description used by the packaging system.                                                                                                        |
 | pkg_maintainer          | email address of the package maintainer. e.g. someone@example.com                                                                                         |
 | pkg_scripts             | comma separated k=v pairs, where k=script name, and value is a file in the output directory<br/> typically a file generated from a template.defaults to:  "post-install=post-install.sh,pre-deinstall=pre-deinstall.sh"|
-| [freebsd.deps]          | the root of the list of OS package dependencies that YOUR package needs in order to function.                                                             |
+
+
+| TOML FIELD              | DESCRIPTION                                                                                                                                               |
+|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [freebsd.deps]          | the root of the list of OS package dependencies that YOUR package needs in order to function. `list` is the only child element.                           |
 | list                    | a list of the packages (DEP_NAME) that will follow.                                                                                                       |
-| [freebsd.deps.DEP_NAME] | the root of a dependency declaration                                                                                                                      |
+
+
+| TOML FIELD              | DESCRIPTION                                                                                                                                               |
+|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [freebsd.deps.DEP_NAME] | the root of a FreeBSD OS package dependency declaration. `version` and `origin` are the only child elements.                                              |
 | version | the dependency version                                                                                                                                    |
 | origin | the dependency origin                                                                                                                                     |
 
@@ -121,6 +129,7 @@ pub type Config {
 }
 ```
 
+So if you wanted to pass in certain daemon flags, then you'd specify that in the toml file as `pkg_daemon_flags = "...etc..."` under [freebsd].
 
 ### Create an erlang-shipment
 
