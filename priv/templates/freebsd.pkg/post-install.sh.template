@@ -32,4 +32,5 @@ then
   echo "===> Creating config in ${CONFIG_FILE}"
   echo "# {{ pkg_name }} config file" > $CONFIG_FILE
   echo 'FOO="bar"' >> $CONFIG_FILE
+  chmod 0444 $CONFIG_FILE
 fi

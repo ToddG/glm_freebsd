@@ -12,7 +12,7 @@ rcvar=${name}_enable
 load_rc_config $name
 
 pidfile="/var/run/${name}.pid"
-procname="/bin/sh"
+procname="/usr/local/lib/erlang/erts-14.2.5.12/bin/beam.smp"
 confdir="{{ pkg_config_dir }}"
 logfile="/var/log/${name}.log"
 
@@ -20,7 +20,6 @@ logfile="/var/log/${name}.log"
 
 command="{{ pkg_prefix }}/libexec/{{ pkg_name }}/entrypoint.sh"
 command_args=" run"
-command_interpreter="/bin/sh"
 start_precmd="${name}_prestart"
 start_postcmd="${name}_poststart"
 start_cmd="${name}_start"
@@ -40,8 +39,6 @@ extra_commands="remote"
 {{#if pkg_user }}
     echo "Setting ${RELEASE_TMP} owner to {{ pkg_username }}."
     chown -R {{ pkg_username }}:{{ pkg_username }} $RELEASE_TMP
-    echo "Setting {{ pkg_prefix }}/libexec/{{ pkg_name }} group to {{ pkg_username }}"
-    chgrp -R {{ pkg_username }} {{ pkg_prefix }}/libexec/{{ pkg_name }}
 {{/if }}
   fi
 }
@@ -68,7 +65,9 @@ extra_commands="remote"
 {{ pkg_name }}_remote()
 {
   export TERM=xterm
-  $command {{ pkg_prefix }}/{{ pkg_name }}/entrypoint.sh shell
+  export PATH=/usr/local/lib/erlang28/bin:$PATH
+
+  $command shell
 }
 
 run_rc_command "$@"

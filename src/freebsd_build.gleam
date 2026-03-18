@@ -116,9 +116,29 @@ fn stage(cfg: config.Config, input_path: String, output_path: String) {
           panic
         }
         Ok(_) -> {
+          make_entrypoint_executable(libexec_dir)
           make_sample_env_file(cfg, output_path)
         }
       }
+    }
+  }
+}
+
+fn make_entrypoint_executable(libexec_dir: String) {
+  let entrypoint_path = libexec_dir <> "/entrypoint.sh"
+  let perms = FilePermissions(user: five(), group: five(), other: five())
+  case simplifile.set_permissions(entrypoint_path, to: perms) {
+    Error(e) -> {
+      io.println_error(
+        "unable to set permissions on entrypoint: "
+        <> entrypoint_path
+        <> ", error: "
+        <> string.inspect(e),
+      )
+      panic
+    }
+    Ok(_) -> {
+      io.println("updated entrypoint.sh permissions: " <> entrypoint_path)
     }
   }
 }
@@ -168,7 +188,7 @@ fn make_sample_env_file(cfg: config.Config, output_path: String) {
             }
             Ok(_) -> {
               let perms =
-                FilePermissions(user: six(), group: six(), other: zero())
+                FilePermissions(user: four(), group: four(), other: zero())
               case simplifile.set_permissions(env_sample_file, to: perms) {
                 Error(e) -> {
                   io.println_error(

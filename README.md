@@ -25,29 +25,25 @@ pkg install -y erlang-runtime28 gleam rebar3
 ### Run a quick test to ensure everything works
 
 ```sh
-# first build the target app release files (in this case we have ./priv/example but you'll want to use your app path here)
-rm -rf ./tmp
-pushd ./priv/example
-gleam export erlang-shipment
-popd
-gleam run -- templates --input ./priv/example/ --output ./tmp
-ls 
+# gleam 1.14 (and json) needs erlang28
+export PATH=/usr/local/lib/erlang28/bin:$PATH
+
+# build the target app release files (in this case we have ./priv/example but you'll want to use your app path here)
+pushd ./priv/example && gleam export erlang-shipment && popd
+
+# now generate the freebsd package
+rm -rf ./tmp && gleam run -- templates --input ./priv/example/ --output ./tmp
+
+# package should be here
+ls
 >> example-1.0.0.pkg
+
+# install
+pkg install example-1.0.0.pkg
+
+# test
+service example start
+service example status
+cat /var/log/example.log
+service example stop
 ```
-
-### Error?
-
-Attempting to install the generated package fails b/c of a missing dependency:
-
-```shell
-pkg install example
-...
-Updating FreeBSD-ports repository catalogue...
-FreeBSD-ports repository is up to date.
-Updating FreeBSD-ports-kmods repository catalogue...
-FreeBSD-ports-kmods repository is up to date.
-All repositories are up to date.
-pkg: example has a missing dependency: cdiff
-```
-
-TODO: I'll ask on the FreeBSD forums as to what I need to do here...
