@@ -1,8 +1,9 @@
-import gleam/list
 import gleam/dict.{type Dict}
 import gleam/io
+import gleam/list
 import gleam/string
-import yodel
+import simplifile
+import tom.{type Toml}
 
 // ------------------------------------------------------------------
 // Load the gleam.toml file, read both the global sections and the
@@ -36,114 +37,143 @@ pub type Config {
 }
 
 pub fn load_toml(path: String, output_path: String) -> Config {
-  case yodel.load(path) {
-    Ok(config) -> {
-      let pkg_name = yodel.get_string_or(config, "name", "ERROR")
-      let pkg_prefix =
-        yodel.get_string_or(config, "freebsd.pkg_prefix", "/usr/local")
-      let pkg_scripts_str =
-        yodel.get_string_or(
-          config,
-          "freebsd.pkg_scripts",
-          "post-install=post-install.sh,pre-deinstall=pre-deinstall.sh",
-        )
-      let pkg_scripts=pkg_scripts_str |> string.split(",")
-      let pkg_scripts_dict =
-      pkg_scripts
-      |> list.map(fn(s){string.split_once(s, "=")})
-      |> list.filter_map(fn(s){s})
-      |> list.map(fn(t){
-        let #(key, script) = t
-        let script_path = output_path <> "/" <> script
-        #(key, script_path)
-        }
+  case simplifile.read(path) {
+    Error(e) -> {
+      io.println_error(
+        "unable to load the toml file at path:"
+        <> path
+        <> ", error: "
+        <> string.inspect(e),
       )
-      |> dict.from_list
-
-      let freebsd_deps_list = yodel.get_string_or(
-      config,
-      "freebsd.deps.list",
-      "",
-      )
-      |> string.split(",")
-
-      let deps_dict =
-      freebsd_deps_list
-      |> list.map(fn(dep){
-        let version = yodel.get_string_or(config, "freebsd.deps." <> dep <> ".version", "ERROR")
-        let origin = yodel.get_string_or(config, "freebsd.deps." <> dep <> ".origin", "ERROR")
-        #(dep, dict.from_list([#("version", version), #("origin", origin)]))
-      })
-      |> dict.from_list
-
-      Config(
-        pkg_dependencies: deps_dict,
-        pkg_bin_path: yodel.get_string_or(
-          config,
-          "freebsd.pkg_bin_path",
-          pkg_prefix <> "/bin",
-        ),
-        pkg_config_dir: yodel.get_string_or(
-          config,
-          "freebsd.pkg_config_dir",
-          [pkg_prefix, "etc", pkg_name <> ".d"] |> string.join("/"),
-        ),
-        pkg_daemon_flags: yodel.get_string_or(
-          config,
-          "freebsd.pkg_daemon_flags",
-          "",
-        ),
-        pkg_comment: yodel.get_string_or(
-          config,
-          "description",
-          "TODO: ENTER A COMMENT HERE",
-        ),
-        pkg_conf_dir_uppercase: pkg_name |> string.uppercase,
-        pkg_description: yodel.get_string_or(
-          config,
-          "freebsd.pkg_description",
-          "TODO: ENTER A DESCRIPTION HERE.",
-        ),
-        pkg_env_file: yodel.get_string_or(
-          config,
-          "freebsd.pkg_env_file",
-          pkg_name <> ".env",
-        ),
-        pkg_name:,
-        pkg_origin: yodel.get_string_or(
-          config,
-          "freebsd.pkg_origin",
-          "devel/" <> pkg_name,
-        ),
-        pkg_prefix:,
-        pkg_scripts: pkg_scripts_dict,
-        pkg_username: yodel.get_string_or(
-          config,
-          "freebsd.pkg_username",
-          yodel.get_string_or(config, "name", "user"),
-        ),
-        pkg_user: yodel.get_bool_or(config, "freebsd.pkg_user", False),
-        pkg_version: yodel.get_string_or(config, "version", "0.0.0"),
-        pkg_www: yodel.get_string_or(
-          config,
-          "repository.repo",
-          "TODO: ENTER A URL HERE.",
-        ),
-        pkg_var_dir: yodel.get_string_or(
-          config,
-          "freebsd.var_dir",
-          "/var/run/" <> pkg_name,
-        ),
-        pkg_maintainer: yodel.get_string_or(
-          config,
-          "freebsd.pkg_maintainer",
-          "TODO: ENTER MAINTAINER HERE",
-        ),
-      )
-    }
-    _ -> {
-      io.println_error("Unable to load file at path: " <> path)
       panic
     }
+    Ok(text) -> {
+      case tom.parse(text) {
+        Error(e) -> {
+          io.println_error(
+            "unable to parse the toml file at path:"
+            <> path
+            <> ", error: "
+            <> string.inspect(e),
+          )
+          panic
+        }
+        Ok(parsed) -> {
+          config(parsed, output_path)
+        }
+      }
+    }
+  }
+}
+
+fn config(parsed: Dict(String, Toml), output_path: String) -> Config {
+  let pkg_name = get_string_or(parsed, "name", "ERROR")
+  let pkg_prefix = get_string_or(parsed, "freebsd.pkg_prefix", "/usr/local")
+  let pkg_scripts_str =
+    get_string_or(
+      parsed,
+      "freebsd.pkg_scripts",
+      "post-install=post-install.sh,pre-deinstall=pre-deinstall.sh",
+    )
+  let pkg_scripts = pkg_scripts_str |> string.split(",")
+  let pkg_scripts_dict =
+    pkg_scripts
+    |> list.map(fn(s) { string.split_once(s, "=") })
+    |> list.filter_map(fn(s) { s })
+    |> list.map(fn(t) {
+      let #(key, script) = t
+      let script_path = output_path <> "/" <> script
+      #(key, script_path)
+    })
+    |> dict.from_list
+
+  let freebsd_deps_list =
+    get_string_or(parsed, "freebsd.deps.list", "")
+    |> string.split(",")
+
+  let deps_dict =
+    freebsd_deps_list
+    |> list.map(fn(dep) {
+      let version =
+        get_string_or(parsed, "freebsd.deps." <> dep <> ".version", "ERROR")
+      let origin =
+        get_string_or(parsed, "freebsd.deps." <> dep <> ".origin", "ERROR")
+      #(dep, dict.from_list([#("version", version), #("origin", origin)]))
+    })
+    |> dict.from_list
+
+  Config(
+    pkg_dependencies: deps_dict,
+    pkg_bin_path: get_string_or(
+      parsed,
+      "freebsd.pkg_bin_path",
+      pkg_prefix <> "/bin",
+    ),
+    pkg_config_dir: get_string_or(
+      parsed,
+      "freebsd.pkg_config_dir",
+      [pkg_prefix, "etc", pkg_name <> ".d"] |> string.join("/"),
+    ),
+    pkg_daemon_flags: get_string_or(parsed, "freebsd.pkg_daemon_flags", ""),
+    pkg_comment: get_string_or(
+      parsed,
+      "description",
+      "TODO: ENTER A COMMENT HERE",
+    ),
+    pkg_conf_dir_uppercase: pkg_name |> string.uppercase,
+    pkg_description: get_string_or(
+      parsed,
+      "freebsd.pkg_description",
+      "TODO: ENTER A DESCRIPTION HERE.",
+    ),
+    pkg_env_file: get_string_or(
+      parsed,
+      "freebsd.pkg_env_file",
+      pkg_name <> ".env",
+    ),
+    pkg_name:,
+    pkg_origin: get_string_or(
+      parsed,
+      "freebsd.pkg_origin",
+      "devel/" <> pkg_name,
+    ),
+    pkg_prefix:,
+    pkg_scripts: pkg_scripts_dict,
+    pkg_username: get_string_or(
+      parsed,
+      "freebsd.pkg_username",
+      get_string_or(parsed, "name", "user"),
+    ),
+    pkg_user: get_bool_or(parsed, "freebsd.pkg_user", False),
+    pkg_version: get_string_or(parsed, "version", "0.0.0"),
+    pkg_www: get_string_or(parsed, "repository.repo", "TODO: ENTER A URL HERE."),
+    pkg_var_dir: get_string_or(
+      parsed,
+      "freebsd.var_dir",
+      "/var/run/" <> pkg_name,
+    ),
+    pkg_maintainer: get_string_or(
+      parsed,
+      "freebsd.pkg_maintainer",
+      "TODO: ENTER MAINTAINER HERE",
+    ),
+  )
+}
+
+fn get_string_or(
+  toml: Dict(String, Toml),
+  key: String,
+  default: String,
+) -> String {
+  case tom.get_string(toml, key |> string.split(".")) {
+    Error(_) -> default
+    Ok(v) -> v
+  }
+}
+
+fn get_bool_or(toml: Dict(String, Toml), key: String, default: Bool) -> Bool {
+  case tom.get_bool(toml, key |> string.split(".")) {
+    Error(_) -> default
+    Ok(v) -> v
   }
 }
