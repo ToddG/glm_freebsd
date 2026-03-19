@@ -1,4 +1,6 @@
+import gleam/bool
 import gleam/dict.{type Dict}
+import gleam/int
 import gleam/io
 import gleam/list
 import gleam/string
@@ -30,6 +32,7 @@ pub type Config {
     pkg_scripts: Dict(String, String),
     pkg_user: Bool,
     pkg_username: String,
+    pkg_user_uid: Int,
     pkg_version: String,
     pkg_www: String,
     pkg_var_dir: String,
@@ -37,7 +40,6 @@ pub type Config {
     pkg_command: String,
     pkg_command_args: String,
     pkg_proc_name: String,
-
   )
 }
 
@@ -161,6 +163,7 @@ fn config(parsed: Dict(String, Toml), output_path: String) -> Config {
       "freebsd.pkg_username",
       get_string_or(parsed, "name", "user"),
     ),
+    pkg_user_uid: get_int_or(parsed, "freebsd.pkg_user_uid", 2001),
     pkg_user: get_bool_or(parsed, "freebsd.pkg_user", False),
     pkg_version: get_string_or(parsed, "version", "0.0.0"),
     pkg_www: get_string_or(parsed, "repository.repo", "TODO: ENTER A URL HERE."),
@@ -182,15 +185,64 @@ fn get_string_or(
   key: String,
   default: String,
 ) -> String {
-  case tom.get_string(toml, key |> string.split(".")) {
-    Error(_) -> default
-    Ok(v) -> v
+  let path = key |> string.split(".")
+  case tom.get_string(toml, path) {
+    Error(e) -> {
+      io.println_error(
+        "ERROR: path not found, path: "
+        <> string.inspect(path)
+        <> ", error: "
+        <> string.inspect(e)
+        <> ", using default: "
+        <> default,
+      )
+      default
+    }
+    Ok(v) -> {
+      io.println("DEBUG: found path: " <> string.inspect(path) <> ", value: " <> v)
+      v
+    }
   }
 }
 
 fn get_bool_or(toml: Dict(String, Toml), key: String, default: Bool) -> Bool {
-  case tom.get_bool(toml, key |> string.split(".")) {
-    Error(_) -> default
-    Ok(v) -> v
+  let path = key |> string.split(".")
+  case tom.get_bool(toml, path) {
+    Error(e) -> {
+      io.println_error(
+        "ERROR: path not found, path: "
+        <> string.inspect(path)
+        <> ", error: "
+        <> string.inspect(e)
+        <> ", using default: "
+        <> bool.to_string(default),
+      )
+      default
+    }
+    Ok(v) -> {
+      io.println("DEBUG: found path: " <> string.inspect(path) <> ", value: " <> bool.to_string(v))
+      v
+    }
+  }
+}
+
+fn get_int_or(toml: Dict(String, Toml), key: String, default: Int) -> Int {
+  let path = key |> string.split(".")
+  case tom.get_int(toml, path) {
+    Error(e) -> {
+      io.println_error(
+        "ERROR: path not found, path: "
+        <> string.inspect(path)
+        <> ", error: "
+        <> string.inspect(e)
+        <> ", using default: "
+        <> int.to_string(default),
+      )
+      default
+    }
+    Ok(v) -> {
+      io.println("DEBUG: found path: " <> string.inspect(path) <> ", value: " <> int.to_string(v))
+      v
+    }
   }
 }
