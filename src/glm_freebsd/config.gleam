@@ -189,7 +189,7 @@ fn get_string_or(
   case tom.get_string(toml, path) {
     Error(e) -> {
       io.println_error(
-        "path not found, path: "
+        "ERROR: path not found, path: "
         <> string.inspect(path)
         <> ", error: "
         <> string.inspect(e)
@@ -198,7 +198,10 @@ fn get_string_or(
       )
       default
     }
-    Ok(v) -> v
+    Ok(v) -> {
+      io.println("DEBUG: found path: " <> string.inspect(path) <> ", value: " <> v)
+      v
+    }
   }
 }
 
@@ -207,7 +210,7 @@ fn get_bool_or(toml: Dict(String, Toml), key: String, default: Bool) -> Bool {
   case tom.get_bool(toml, path) {
     Error(e) -> {
       io.println_error(
-        "path not found, path: "
+        "ERROR: path not found, path: "
         <> string.inspect(path)
         <> ", error: "
         <> string.inspect(e)
@@ -216,7 +219,10 @@ fn get_bool_or(toml: Dict(String, Toml), key: String, default: Bool) -> Bool {
       )
       default
     }
-    Ok(v) -> v
+    Ok(v) -> {
+      io.println("DEBUG: found path: " <> string.inspect(path) <> ", value: " <> bool.to_string(v))
+      v
+    }
   }
 }
 
@@ -225,7 +231,7 @@ fn get_int_or(toml: Dict(String, Toml), key: String, default: Int) -> Int {
   case tom.get_int(toml, path) {
     Error(e) -> {
       io.println_error(
-        "path not found, path: "
+        "ERROR: path not found, path: "
         <> string.inspect(path)
         <> ", error: "
         <> string.inspect(e)
@@ -234,6 +240,9 @@ fn get_int_or(toml: Dict(String, Toml), key: String, default: Int) -> Int {
       )
       default
     }
-    Ok(v) -> v
+    Ok(v) -> {
+      io.println("DEBUG: found path: " <> string.inspect(path) <> ", value: " <> int.to_string(v))
+      v
+    }
   }
 }
