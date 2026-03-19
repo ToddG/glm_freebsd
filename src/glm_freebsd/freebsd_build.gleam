@@ -117,7 +117,6 @@ fn stage(cfg: config.Config, input_path: String, output_path: String) {
         }
         Ok(_) -> {
           make_entrypoint_executable(libexec_dir)
-          make_sample_env_file(cfg, output_path)
         }
       }
     }
@@ -143,75 +142,6 @@ fn make_entrypoint_executable(libexec_dir: String) {
   }
 }
 
-fn make_sample_env_file(cfg: config.Config, output_path: String) {
-  let conf_dir = stage_dir(output_path) <> cfg.pkg_config_dir
-  case simplifile.create_directory_all(conf_dir) {
-    Error(e) -> {
-      io.println_error(
-        "unable to create conf dir: "
-        <> conf_dir
-        <> ", error: "
-        <> string.inspect(e),
-      )
-      panic
-    }
-    Ok(_) -> {
-      let perms = FilePermissions(user: seven(), group: five(), other: five())
-      case simplifile.set_permissions(conf_dir, to: perms) {
-        Error(e) -> {
-          io.println_error(
-            "unable to set permissions on conf_dir: "
-            <> conf_dir
-            <> ", error: "
-            <> string.inspect(e),
-          )
-          panic
-        }
-        Ok(_) -> {
-          let env_sample_contents =
-            "
-# Environment variables defined here will be available to your application.
-# NOTE: comments below are for elixir...TODO: update comments for gleam
-# RELEASE_COOKIE=\"generate with Base.url_encode64(:crypto.strong_rand_bytes(40))\"
-# DATABASE_URL=\"ecto://username:password@host/database\"
-"
-          let env_sample_file = conf_dir <> "/" <> cfg.pkg_env_file <> ".sample"
-          case simplifile.write(env_sample_file, env_sample_contents) {
-            Error(e) -> {
-              io.println_error(
-                "unable to write sample contents to: "
-                <> env_sample_file
-                <> ", error: "
-                <> string.inspect(e),
-              )
-              panic
-            }
-            Ok(_) -> {
-              let perms =
-                FilePermissions(user: four(), group: four(), other: zero())
-              case simplifile.set_permissions(env_sample_file, to: perms) {
-                Error(e) -> {
-                  io.println_error(
-                    "unable to set permissions on env_sample_file: "
-                    <> env_sample_file
-                    <> " permissions: "
-                    <> string.inspect(perms)
-                    <> ", error: "
-                    <> string.inspect(e),
-                  )
-                  panic
-                }
-                Ok(_) -> {
-                  io.println("wrote " <> env_sample_file)
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
 
 fn write_manifest(manifest: FreeBSDManifest, output_path: String) {
   let tmp_dir = tmp_dir(output_path)
@@ -501,6 +431,7 @@ fn rel_files(cfg: config.Config, output_path: String) -> List(String) {
   let files = recursive_files(stage_dir)
   files
   |> list.map(fn(path) {
+    io.println("DEBUG: path: " <> path <> ", stage_dir: " <> stage_dir <> ", pkg_prefix: " <> cfg.pkg_prefix)
     string.replace(path, stage_dir <> cfg.pkg_prefix <> "/", "")
   })
 }

@@ -16,6 +16,8 @@ pkg_user = true
 pkg_description = "This is a longer description .........................................................."
 pkg_maintainer = "someone@example.com"
 pkg_scripts = "post-install=post-install.sh,pre-deinstall=pre-deinstall.sh"
+pkg_config_dir = "/opt/file/app/config"
+pkg_env_file = "backend.env"
 
 [freebsd.deps]
 list = "pstree,tree"
