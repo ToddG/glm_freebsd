@@ -17,6 +17,7 @@ fn reify_template(cfg: config.Config, template: String, template_path: String) -
             ctx.Prop("pkg_name", ctx.Str(cfg.pkg_name)),
             ctx.Prop("pkg_user", ctx.Bool(cfg.pkg_user)),
             ctx.Prop("pkg_username", ctx.Str(cfg.pkg_username)),
+            ctx.Prop("pkg_user_uid", ctx.Int(cfg.pkg_user_uid)),
             ctx.Prop("pkg_config_dir", ctx.Str(cfg.pkg_config_dir)),
             ctx.Prop("pkg_bin_path", ctx.Str(cfg.pkg_bin_path)),
             ctx.Prop("pkg_conf_dir_uppercase", ctx.Str(cfg.pkg_conf_dir_uppercase)),
