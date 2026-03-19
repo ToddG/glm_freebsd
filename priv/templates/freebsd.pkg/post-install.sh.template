@@ -14,7 +14,7 @@ fi
 echo "===> Creating user."
 if ! ${PW} groupshow ${PKG_USER} >/dev/null 2>&1; then
   echo "Group: '${PKG_USER}'."
-  ${PW} groupadd ${PKG_USER} -g ${{ pkg_user_uid }}
+  ${PW} groupadd ${PKG_USER} -g {{ pkg_user_uid }}
 else
   echo "Using existing group: '${PKG_USER}'."
 fi
