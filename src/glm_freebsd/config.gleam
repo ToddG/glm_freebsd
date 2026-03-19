@@ -1,4 +1,6 @@
+import gleam/bool
 import gleam/dict.{type Dict}
+import gleam/int
 import gleam/io
 import gleam/list
 import gleam/string
@@ -38,7 +40,6 @@ pub type Config {
     pkg_command: String,
     pkg_command_args: String,
     pkg_proc_name: String,
-
   )
 }
 
@@ -184,22 +185,55 @@ fn get_string_or(
   key: String,
   default: String,
 ) -> String {
-  case tom.get_string(toml, key |> string.split(".")) {
-    Error(_) -> default
+  let path = key |> string.split(".")
+  case tom.get_string(toml, path) {
+    Error(e) -> {
+      io.println_error(
+        "path not found, path: "
+        <> string.inspect(path)
+        <> ", error: "
+        <> string.inspect(e)
+        <> ", using default: "
+        <> default,
+      )
+      default
+    }
     Ok(v) -> v
   }
 }
 
 fn get_bool_or(toml: Dict(String, Toml), key: String, default: Bool) -> Bool {
-  case tom.get_bool(toml, key |> string.split(".")) {
-    Error(_) -> default
+  let path = key |> string.split(".")
+  case tom.get_bool(toml, path) {
+    Error(e) -> {
+      io.println_error(
+        "path not found, path: "
+        <> string.inspect(path)
+        <> ", error: "
+        <> string.inspect(e)
+        <> ", using default: "
+        <> bool.to_string(default),
+      )
+      default
+    }
     Ok(v) -> v
   }
 }
 
 fn get_int_or(toml: Dict(String, Toml), key: String, default: Int) -> Int {
-  case tom.get_int(toml, key |> string.split(".")) {
-    Error(_) -> default
+  let path = key |> string.split(".")
+  case tom.get_int(toml, path) {
+    Error(e) -> {
+      io.println_error(
+        "path not found, path: "
+        <> string.inspect(path)
+        <> ", error: "
+        <> string.inspect(e)
+        <> ", using default: "
+        <> int.to_string(default),
+      )
+      default
+    }
     Ok(v) -> v
   }
 }
