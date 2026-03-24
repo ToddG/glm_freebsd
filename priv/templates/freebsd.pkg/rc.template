@@ -57,17 +57,17 @@ extra_commands="remote"
 
   rm -f ${pidfile}
 {{#if pkg_user }}
-  daemon -t $name -p $pidfile -f -H -o $logfile -u {{ pkg_username }} {{ pkg_daemon_flags }} $command $command_args
+  daemon -t $name -p $pidfile -f -H -o $logfile -u {{ pkg_username }} {{ pkg_daemon_flags }} env PATH=$PATH $command $command_args
 {{/if}}
 {{#unless pkg_user}}
-  daemon -t $name -p $pidfile -f -H -o $logfile {{ pkg_daemon_flags }} $command $command_args
+  daemon -t $name -p $pidfile -f -H -o $logfile {{ pkg_daemon_flags }} env PATH=$PATH $command $command_args
 {{/unless}}
 }
 
 {{ pkg_name }}_remote()
 {
   export TERM=xterm
-  $command shell
+  env PATH=$PATH $command shell
 }
 
 run_rc_command "$@"

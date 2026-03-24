@@ -1,4 +1,3 @@
-import gleam/io
 import gleam/list
 import gleam/string
 import gleam/string_tree
@@ -6,6 +5,7 @@ import glm_freebsd/config
 import handles
 import handles/ctx
 import simplifile
+import logging
 
 fn reify_template(cfg: config.Config, template: String, template_path: String) -> String {
   case handles.prepare(template) {
@@ -38,13 +38,13 @@ fn reify_template(cfg: config.Config, template: String, template_path: String) -
           string_tree.to_string(result)
         }
         Error(e) -> {
-          io.print_error("Unable to run the template: " <> template_path <> ", error:" <> string.inspect(e))
+          logging.log(logging.Error, "Unable to run the template: " <> template_path <> ", error:" <> string.inspect(e))
           panic
         }
       }
     }
     Error(e) -> {
-      io.print_error("Unable to prepare template: " <> template_path <> ", error:" <> string.inspect(e))
+      logging.log(logging.Error, "Unable to prepare template: " <> template_path <> ", error:" <> string.inspect(e))
       panic
     }
   }
@@ -64,7 +64,7 @@ fn output_filename(template_file_path: String) -> String {
       filename
     }
     _ -> {
-      io.print_error(
+      logging.log(logging.Error,
         "Unable to read extract the basename from template_file_path: "
         <> template_file_path,
       )
@@ -80,15 +80,15 @@ fn process_template(cfg: config.Config, template_path: String, output_dir: Strin
       let output_text = reify_template(cfg, template_text, template_path)
       case simplifile.write(to: output_file_path, contents: output_text) {
         Ok(_) -> {
-          io.println("wrote " <> output_file_path)
+          logging.log(logging.Info, "wrote " <> output_file_path)
         }
         Error(_) -> {
-          io.print_error("unable to write output file: " <> output_file_path)
+          logging.log(logging.Error, "unable to write output file: " <> output_file_path)
         }
       }
     }
     _ -> {
-      io.print_error("Unable to read template_path: " <> template_path)
+      logging.log(logging.Error, "Unable to read template_path: " <> template_path)
       panic
     }
   }

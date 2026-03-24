@@ -6,3 +6,5 @@ erl_crash.dump
 tmp
 *.pkg
 tmp*
+glm_freebsd
+build

@@ -1,7 +1,11 @@
-import gleam/io
 import gleam/erlang/process
+import envoy
+import gleam/string
+import logging
 
 pub fn main() -> Nil {
-  io.println("Hello from example!")
-  process.sleep_forever()
+  let _ = logging.configure()
+  logging.log(logging.Info, "Hello from example!")
+  logging.log(logging.Info, "environment: " <> string.inspect(envoy.all()))
+  process.sleep(10)
 }

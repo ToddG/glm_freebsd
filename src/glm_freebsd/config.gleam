@@ -1,11 +1,11 @@
 import gleam/bool
 import gleam/dict.{type Dict}
 import gleam/int
-import gleam/io
 import gleam/list
 import gleam/string
 import simplifile
 import tom.{type Toml}
+import logging
 
 // ------------------------------------------------------------------
 // Load the gleam.toml file, read both the global sections and the
@@ -46,7 +46,7 @@ pub type Config {
 pub fn load_toml(path: String, output_path: String) -> Config {
   case simplifile.read(path) {
     Error(e) -> {
-      io.println_error(
+      logging.log(logging.Error,
         "unable to load the toml file at path:"
         <> path
         <> ", error: "
@@ -57,7 +57,7 @@ pub fn load_toml(path: String, output_path: String) -> Config {
     Ok(text) -> {
       case tom.parse(text) {
         Error(e) -> {
-          io.println_error(
+          logging.log(logging.Error,
             "unable to parse the toml file at path:"
             <> path
             <> ", error: "
@@ -188,8 +188,8 @@ fn get_string_or(
   let path = key |> string.split(".")
   case tom.get_string(toml, path) {
     Error(e) -> {
-      io.println_error(
-        "ERROR: path not found, path: "
+      logging.log(logging.Debug,
+        "path not found, path: "
         <> string.inspect(path)
         <> ", error: "
         <> string.inspect(e)
@@ -199,7 +199,7 @@ fn get_string_or(
       default
     }
     Ok(v) -> {
-      io.println("DEBUG: found path: " <> string.inspect(path) <> ", value: " <> v)
+      logging.log(logging.Debug, "found path: " <> string.inspect(path) <> ", value: " <> v)
       v
     }
   }
@@ -209,8 +209,8 @@ fn get_bool_or(toml: Dict(String, Toml), key: String, default: Bool) -> Bool {
   let path = key |> string.split(".")
   case tom.get_bool(toml, path) {
     Error(e) -> {
-      io.println_error(
-        "ERROR: path not found, path: "
+      logging.log(logging.Debug,
+        "path not found, path: "
         <> string.inspect(path)
         <> ", error: "
         <> string.inspect(e)
@@ -220,7 +220,7 @@ fn get_bool_or(toml: Dict(String, Toml), key: String, default: Bool) -> Bool {
       default
     }
     Ok(v) -> {
-      io.println("DEBUG: found path: " <> string.inspect(path) <> ", value: " <> bool.to_string(v))
+      logging.log(logging.Debug, "found path: " <> string.inspect(path) <> ", value: " <> bool.to_string(v))
       v
     }
   }
@@ -230,8 +230,8 @@ fn get_int_or(toml: Dict(String, Toml), key: String, default: Int) -> Int {
   let path = key |> string.split(".")
   case tom.get_int(toml, path) {
     Error(e) -> {
-      io.println_error(
-        "ERROR: path not found, path: "
+      logging.log(logging.Debug,
+        "path not found, path: "
         <> string.inspect(path)
         <> ", error: "
         <> string.inspect(e)
@@ -241,7 +241,7 @@ fn get_int_or(toml: Dict(String, Toml), key: String, default: Int) -> Int {
       default
     }
     Ok(v) -> {
-      io.println("DEBUG: found path: " <> string.inspect(path) <> ", value: " <> int.to_string(v))
+      logging.log(logging.Debug, "found path: " <> string.inspect(path) <> ", value: " <> int.to_string(v))
       v
     }
   }
