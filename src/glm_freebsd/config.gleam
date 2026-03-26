@@ -3,9 +3,9 @@ import gleam/dict.{type Dict}
 import gleam/int
 import gleam/list
 import gleam/string
+import logging
 import simplifile
 import tom.{type Toml}
-import logging
 
 // ------------------------------------------------------------------
 // Load the gleam.toml file, read both the global sections and the
@@ -40,28 +40,32 @@ pub type Config {
     pkg_command: String,
     pkg_command_args: String,
     pkg_proc_name: String,
+    pkg_templates_dir: String,
   )
 }
 
-pub fn load_toml(path: String, output_path: String) -> Config {
-  case simplifile.read(path) {
+pub fn load_toml(input_path: String, output_path: String) -> Config {
+  let gleam_toml_path = input_path <> "/gleam.toml"
+  case simplifile.read(gleam_toml_path) {
     Error(e) -> {
-      logging.log(logging.Error,
+      logging.log(
+        logging.Error,
         "unable to load the toml file at path:"
-        <> path
-        <> ", error: "
-        <> string.inspect(e),
+          <> gleam_toml_path
+          <> ", error: "
+          <> string.inspect(e),
       )
       panic
     }
     Ok(text) -> {
       case tom.parse(text) {
         Error(e) -> {
-          logging.log(logging.Error,
+          logging.log(
+            logging.Error,
             "unable to parse the toml file at path:"
-            <> path
-            <> ", error: "
-            <> string.inspect(e),
+              <> gleam_toml_path
+              <> ", error: "
+              <> string.inspect(e),
           )
           panic
         }
@@ -177,6 +181,11 @@ fn config(parsed: Dict(String, Toml), output_path: String) -> Config {
       "freebsd.pkg_maintainer",
       "TODO: ENTER MAINTAINER HERE",
     ),
+    pkg_templates_dir: get_string_or(
+      parsed,
+      "freebsd.pkg_templates_dir",
+      "/priv/package/templates/",
+    ),
   )
 }
 
@@ -188,18 +197,22 @@ fn get_string_or(
   let path = key |> string.split(".")
   case tom.get_string(toml, path) {
     Error(e) -> {
-      logging.log(logging.Debug,
+      logging.log(
+        logging.Debug,
         "path not found, path: "
-        <> string.inspect(path)
-        <> ", error: "
-        <> string.inspect(e)
-        <> ", using default: "
-        <> default,
+          <> string.inspect(path)
+          <> ", error: "
+          <> string.inspect(e)
+          <> ", using default: "
+          <> default,
       )
       default
     }
     Ok(v) -> {
-      logging.log(logging.Debug, "found path: " <> string.inspect(path) <> ", value: " <> v)
+      logging.log(
+        logging.Debug,
+        "found path: " <> string.inspect(path) <> ", value: " <> v,
+      )
       v
     }
   }
@@ -209,18 +222,25 @@ fn get_bool_or(toml: Dict(String, Toml), key: String, default: Bool) -> Bool {
   let path = key |> string.split(".")
   case tom.get_bool(toml, path) {
     Error(e) -> {
-      logging.log(logging.Debug,
+      logging.log(
+        logging.Debug,
         "path not found, path: "
-        <> string.inspect(path)
-        <> ", error: "
-        <> string.inspect(e)
-        <> ", using default: "
-        <> bool.to_string(default),
+          <> string.inspect(path)
+          <> ", error: "
+          <> string.inspect(e)
+          <> ", using default: "
+          <> bool.to_string(default),
       )
       default
     }
     Ok(v) -> {
-      logging.log(logging.Debug, "found path: " <> string.inspect(path) <> ", value: " <> bool.to_string(v))
+      logging.log(
+        logging.Debug,
+        "found path: "
+          <> string.inspect(path)
+          <> ", value: "
+          <> bool.to_string(v),
+      )
       v
     }
   }
@@ -230,18 +250,25 @@ fn get_int_or(toml: Dict(String, Toml), key: String, default: Int) -> Int {
   let path = key |> string.split(".")
   case tom.get_int(toml, path) {
     Error(e) -> {
-      logging.log(logging.Debug,
+      logging.log(
+        logging.Debug,
         "path not found, path: "
-        <> string.inspect(path)
-        <> ", error: "
-        <> string.inspect(e)
-        <> ", using default: "
-        <> int.to_string(default),
+          <> string.inspect(path)
+          <> ", error: "
+          <> string.inspect(e)
+          <> ", using default: "
+          <> int.to_string(default),
       )
       default
     }
     Ok(v) -> {
-      logging.log(logging.Debug, "found path: " <> string.inspect(path) <> ", value: " <> int.to_string(v))
+      logging.log(
+        logging.Debug,
+        "found path: "
+          <> string.inspect(path)
+          <> ", value: "
+          <> int.to_string(v),
+      )
       v
     }
   }

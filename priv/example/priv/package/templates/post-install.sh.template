@@ -1,6 +1,10 @@
 PKG_NAME="{{ pkg_name }}"
-CONFIG_DIR="{{ pkg_config_dir }}"
-CONFIG_FILE="$CONFIG_DIR/{{ pkg_env_file }}"
+# --------------------------------------------------------------------------------------
+# CUSTOM STUFF HERE
+# --------------------------------------------------------------------------------------
+CONFIG_DIR="{{ pkg_config_dir }}/CUSTOM"
+CONFIG_FILE="${CONFIG_DIR}/{{ pkg_env_file }}.CUSTOM"
+
 
 {{#if pkg_user }}
 PKG_USER="{{ pkg_username }}"
@@ -27,10 +31,16 @@ else
 fi
 {{/if }}
 
+# --------------------------------------------------------------------------------------
+# MORE CUSTOM STUFF HERE
+# --------------------------------------------------------------------------------------
 if [ ! -f $CONFIG_FILE ]
 then
-  echo "===> Creating config in ${CONFIG_FILE}"
-  echo "# {{ pkg_name }} config file" > $CONFIG_FILE
+  echo "===> Creating CUSTOM CONFIG dir ${CONFIG_DIR}"
+  mkdir -p ${CONFIG_DIR}
+  echo "===> Creating CUSTOM CONFIG in ${CONFIG_FILE}"
+  echo "# {{ pkg_name }} CUSTOM CONFIG FILE" > $CONFIG_FILE
   echo 'FOO="bar"' >> $CONFIG_FILE
+  echo 'BING="bing"' >> $CONFIG_FILE
   chmod 0444 $CONFIG_FILE
 fi

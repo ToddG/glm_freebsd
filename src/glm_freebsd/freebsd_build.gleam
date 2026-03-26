@@ -5,9 +5,9 @@ import gleam/result
 import gleam/set
 import gleam/string
 import glm_freebsd/config
+import logging
 import shellout.{type Lookups}
 import simplifile.{Execute, FilePermissions, Read, Write}
-import logging
 
 pub type FreeBSDManifest {
   FreeBSDManifest(
@@ -90,11 +90,12 @@ fn stage(cfg: config.Config, input_path: String, output_path: String) {
   let libexec_dir = install_dir <> "/libexec/" <> cfg.pkg_name
   case simplifile.create_directory_all(libexec_dir) {
     Error(e) -> {
-      logging.log(logging.Error,
+      logging.log(
+        logging.Error,
         "unable to create libexec directory: "
-        <> libexec_dir
-        <> ", error: "
-        <> string.inspect(e),
+          <> libexec_dir
+          <> ", error: "
+          <> string.inspect(e),
       )
       panic
     }
@@ -102,15 +103,17 @@ fn stage(cfg: config.Config, input_path: String, output_path: String) {
       let release_dir = rel_dir(input_path)
       case simplifile.copy_directory(release_dir, libexec_dir) {
         Error(e) -> {
-          logging.log(logging.Error,
+          logging.log(
+            logging.Error,
             "unable to copy release dir: "
-            <> release_dir
-            <> " to libexec_dir: "
-            <> libexec_dir
-            <> ", error: "
-            <> string.inspect(e),
+              <> release_dir
+              <> " to libexec_dir: "
+              <> libexec_dir
+              <> ", error: "
+              <> string.inspect(e),
           )
-          logging.log(logging.Error,
+          logging.log(
+            logging.Error,
             "have you run `gleam export erlang-shipment` in your target project?",
           )
           panic
@@ -128,20 +131,23 @@ fn make_entrypoint_executable(libexec_dir: String) {
   let perms = FilePermissions(user: five(), group: five(), other: five())
   case simplifile.set_permissions(entrypoint_path, to: perms) {
     Error(e) -> {
-      logging.log(logging.Error,
+      logging.log(
+        logging.Error,
         "unable to set permissions on entrypoint: "
-        <> entrypoint_path
-        <> ", error: "
-        <> string.inspect(e),
+          <> entrypoint_path
+          <> ", error: "
+          <> string.inspect(e),
       )
       panic
     }
     Ok(_) -> {
-      logging.log(logging.Info, "updated entrypoint.sh permissions: " <> entrypoint_path)
+      logging.log(
+        logging.Info,
+        "updated entrypoint.sh permissions: " <> entrypoint_path,
+      )
     }
   }
 }
-
 
 fn write_manifest(manifest: FreeBSDManifest, output_path: String) {
   let tmp_dir = tmp_dir(output_path)
@@ -155,24 +161,26 @@ fn write_manifest(manifest: FreeBSDManifest, output_path: String) {
     |> list.map(fn(key) {
       case dict.get(manifest.scripts, key) {
         Error(e) -> {
-          logging.log(logging.Error,
+          logging.log(
+            logging.Error,
             "unable to retrieve script for key: "
-            <> key
-            <> ", error: "
-            <> string.inspect(e),
+              <> key
+              <> ", error: "
+              <> string.inspect(e),
           )
           panic
         }
         Ok(script_path) -> {
           case simplifile.read(script_path) {
             Error(e) -> {
-              logging.log(logging.Error,
+              logging.log(
+                logging.Error,
                 "unable to read script: "
-                <> script_path
-                <> ", for key:"
-                <> key
-                <> ", error: "
-                <> string.inspect(e),
+                  <> script_path
+                  <> ", for key:"
+                  <> key
+                  <> ", error: "
+                  <> string.inspect(e),
               )
               panic
             }
@@ -206,7 +214,8 @@ fn write_manifest(manifest: FreeBSDManifest, output_path: String) {
     |> simplifile.write(manifest_file, _)
   {
     Error(e) -> {
-      logging.log(logging.Error,
+      logging.log(
+        logging.Error,
         "unable to write " <> manifest_file <> ", error:" <> string.inspect(e),
       )
     }
@@ -225,24 +234,26 @@ fn rc_conf(cfg: config.Config, output_path: String) {
 
   case simplifile.create_directory_all(rc_conf_dir) {
     Error(e) -> {
-      logging.log(logging.Error,
+      logging.log(
+        logging.Error,
         "unable to create rc_conf_dir:"
-        <> rc_conf_dir
-        <> ", error: "
-        <> string.inspect(e),
+          <> rc_conf_dir
+          <> ", error: "
+          <> string.inspect(e),
       )
       panic
     }
     Ok(_) -> {
       case simplifile.copy_file(rc_conf_source_file, rc_conf_file) {
         Error(e) -> {
-          logging.log(logging.Error,
+          logging.log(
+            logging.Error,
             "unable to write rc_conf, source:"
-            <> rc_conf_source_file
-            <> ", target: "
-            <> rc_conf_file
-            <> ", error: "
-            <> string.inspect(e),
+              <> rc_conf_source_file
+              <> ", target: "
+              <> rc_conf_file
+              <> ", error: "
+              <> string.inspect(e),
           )
           panic
         }
@@ -251,13 +262,14 @@ fn rc_conf(cfg: config.Config, output_path: String) {
             FilePermissions(user: four(), group: four(), other: zero())
           case simplifile.set_permissions(rc_conf_file, to: perms) {
             Error(e) -> {
-              logging.log(logging.Error,
+              logging.log(
+                logging.Error,
                 "unable to set permissions on rc_conf_file: "
-                <> rc_conf_file
-                <> " to perms: "
-                <> string.inspect(perms)
-                <> ", error: "
-                <> string.inspect(e),
+                  <> rc_conf_file
+                  <> " to perms: "
+                  <> string.inspect(perms)
+                  <> ", error: "
+                  <> string.inspect(e),
               )
               panic
             }
@@ -279,7 +291,8 @@ fn rc(cfg: config.Config, output_path: String) {
 
   case simplifile.create_directory_all(rc_dir) {
     Error(e) -> {
-      logging.log(logging.Error,
+      logging.log(
+        logging.Error,
         "unable to create dir: " <> rc_dir <> ", error: " <> string.inspect(e),
       )
       panic
@@ -288,13 +301,14 @@ fn rc(cfg: config.Config, output_path: String) {
       let rc_script = output_path <> "/rc"
       case simplifile.copy_file(rc_script, rc_file) {
         Error(e) -> {
-          logging.log(logging.Error,
+          logging.log(
+            logging.Error,
             "unable to copy file: "
-            <> rc_script
-            <> " to rc_file: "
-            <> rc_file
-            <> ", error: "
-            <> string.inspect(e),
+              <> rc_script
+              <> " to rc_file: "
+              <> rc_file
+              <> ", error: "
+              <> string.inspect(e),
           )
           panic
         }
@@ -303,13 +317,14 @@ fn rc(cfg: config.Config, output_path: String) {
             FilePermissions(user: five(), group: four(), other: zero())
           case simplifile.set_permissions(rc_file, to: perms) {
             Error(e) -> {
-              logging.log(logging.Error,
+              logging.log(
+                logging.Error,
                 "unable to set permissions on rc_file: "
-                <> rc_file
-                <> " to perms: "
-                <> string.inspect(perms)
-                <> ", error: "
-                <> string.inspect(e),
+                  <> rc_file
+                  <> " to perms: "
+                  <> string.inspect(perms)
+                  <> ", error: "
+                  <> string.inspect(e),
               )
               panic
             }
@@ -330,11 +345,12 @@ fn plist(cfg: config.Config, output_path: String) {
   let content = files |> string.join("\n") <> "\n"
   case simplifile.write(plist_file, content) {
     Error(e) -> {
-      logging.log(logging.Error,
+      logging.log(
+        logging.Error,
         "unable to copy write plist_file: "
-        <> plist_file
-        <> ", error: "
-        <> string.inspect(e),
+          <> plist_file
+          <> ", error: "
+          <> string.inspect(e),
       )
       panic
     }
@@ -378,22 +394,24 @@ fn do_recursive_files(
     [h, ..rest] -> {
       case simplifile.is_directory(h) {
         Error(e) -> {
-          logging.log(logging.Error,
+          logging.log(
+            logging.Error,
             "unable to check if target is a directory: "
-            <> h
-            <> ", error: "
-            <> string.inspect(e),
+              <> h
+              <> ", error: "
+              <> string.inspect(e),
           )
           panic
         }
         Ok(True) -> {
           case simplifile.get_files(h) {
             Error(e) -> {
-              logging.log(logging.Error,
+              logging.log(
+                logging.Error,
                 "unable to get files for dir: "
-                <> h
-                <> ", error: "
-                <> string.inspect(e),
+                  <> h
+                  <> ", error: "
+                  <> string.inspect(e),
               )
               panic
             }
@@ -413,9 +431,10 @@ fn do_recursive_files(
               do_recursive_files(rest, [h, ..outputs])
             }
             _, _ -> {
-              logging.log(logging.Error,
+              logging.log(
+                logging.Error,
                 "warning: targetfile is neither a symlink nor a file, skipping: "
-                <> h,
+                  <> h,
               )
               do_recursive_files(rest, outputs)
             }
@@ -431,7 +450,15 @@ fn rel_files(cfg: config.Config, output_path: String) -> List(String) {
   let files = recursive_files(stage_dir)
   files
   |> list.map(fn(path) {
-    logging.log(logging.Debug, "path: " <> path <> ", stage_dir: " <> stage_dir <> ", pkg_prefix: " <> cfg.pkg_prefix)
+    logging.log(
+      logging.Debug,
+      "path: "
+        <> path
+        <> ", stage_dir: "
+        <> stage_dir
+        <> ", pkg_prefix: "
+        <> cfg.pkg_prefix,
+    )
     string.replace(path, stage_dir <> cfg.pkg_prefix <> "/", "")
   })
 }

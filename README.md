@@ -159,6 +159,8 @@ Start a test run
 Output...
 
 ```bash
+
+t@workstation:/opt/repos/glm_freebsd (toddg/custom-templates)# ./test_pkg.sh
 update path with erlang28 binary, as that's needed for gleam
 and/or the gleam json library
 -------------------------------------------------------------------------------
@@ -173,7 +175,7 @@ the freebsd package for YOUR app.
   Compiling gleeunit
   Compiling logging
   Compiling example
-   Compiled in 0.66s
+   Compiled in 0.67s
    Exported example
 
 Your Erlang shipment has been generated to /opt/repos/glm_freebsd/priv/example/build/erlang-shipment.
@@ -187,14 +189,15 @@ one of the following scripts:
 -------------------------------------------------------------------------------
 building the FreeBSD application service package...
 -------------------------------------------------------------------------------
-   Compiled in 0.03s
+   Compiled in 0.02s
     Running glm_freebsd.main
 logging level set to: info
 INFO application starting...
+INFO copied custom templates over base templates, custom_templates_dir: ./priv/example//priv/package/templates/, target_dir: ./tmp/templates
+INFO wrote ./tmp/rc_conf
+INFO wrote ./tmp/post-install.sh
 INFO wrote ./tmp/pre-deinstall.sh
 INFO wrote ./tmp/rc
-INFO wrote ./tmp/post-install.sh
-INFO wrote ./tmp/rc_conf
 INFO wrote ./tmp/freebsd/+MANIFEST
 INFO updated entrypoint.sh permissions: ./tmp/freebsd/stage/usr/local/libexec/example/entrypoint.sh
 INFO wrote ./tmp/freebsd/stage/usr/local/etc/rc.d/example
@@ -215,8 +218,8 @@ here is the generated manifest
   "prefix": "/usr/local",
   "desc": "This is a longer description ..........................................................",
   "scripts": {
-    "pre-deinstall": "CONFIG_DIR=\"/tmp\"\n\n\nPKG_USER=\"example\"\n\nif [ -n \"${PKG_ROOTDIR}\" ] && [ \"${PKG_ROOTDIR}\" != \"/\" ]; then\n  PW=\"/usr/sbin/pw -R ${PKG_ROOTDIR}\"\nelse\n  PW=/usr/sbin/pw\nfi\nif ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then\n  echo \"==> pkg user '${PKG_USER}' should be manually removed.\"\n  echo \"  ${PW} userdel ${PKG_USER}\"\nfi\n\n\nif [ -d \"${CONFIG_DIR}\" ]\nthen\n  echo \"==> config directory '${CONFIG_DIR}' should be manually removed.\"\n  echo \"  rm -rf ${CONFIG_DIR}\"\nfi\n\nif [ -d \"/var/run/example\" ]\nthen\n  echo \"==> run directory '/var/run/example' should be manually removed.\"\n  echo \"  rm -rf /var/run/example\"\nfi\n",
-    "post-install": "PKG_NAME=\"example\"\nCONFIG_DIR=\"/tmp\"\nCONFIG_FILE=\"/tmp/example.env\"\n\n\nPKG_USER=\"example\"\n\nif [ -n \"${PKG_ROOTDIR}\" ] && [ \"${PKG_ROOTDIR}\" != \"/\" ]; then\n  PW=\"/usr/sbin/pw -R ${PKG_ROOTDIR}\"\nelse\n  PW=/usr/sbin/pw\nfi\n\necho \"===> Creating user.\"\nif ! ${PW} groupshow ${PKG_USER} >/dev/null 2>&1; then\n  echo \"Group: '${PKG_USER}'.\"\n  ${PW} groupadd ${PKG_USER} -g 2001\nelse\n  echo \"Using existing group: '${PKG_USER}'.\"\nfi\n\nif ! ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then\n  echo \"User: '${PKG_USER}'.\"\n  ${PW} useradd ${PKG_USER} -u 2001 -g ${PKG_USER} -c \"${PKG_NAME} user\" -d /nonexistent -s /usr/sbin/nologin\nelse\n  echo \"Using existing user: '${PKG_USER}'.\"\nfi\n\n\nif [ ! -f $CONFIG_FILE ]\nthen\n  echo \"===> Creating config in ${CONFIG_FILE}\"\n  echo \"# example config file\" > $CONFIG_FILE\n  echo 'FOO=\"bar\"' >> $CONFIG_FILE\n  chmod 0444 $CONFIG_FILE\nfi\n"
+    "pre-deinstall": "CONFIG_DIR=\"/tmp\"\n\n\nPKG_USER=\"example\"\n\nif [ -n \"${PKG_ROOTDIR}\" ] && [ \"${PKG_ROOTDIR}\" != \"/\" ]; then\n  PW=\"/usr/sbin/pw -R ${PKG_ROOTDIR}\"\nelse\n  PW=/usr/sbin/pw\nfi\nif ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then\n  echo \"==> pkg user '${PKG_USER}' should be manually removed.\"\n  echo \"  ${PW} userdel ${PKG_USER}\"\nfi\n\n\nif [ -d \"${CONFIG_DIR}\" ]\nthen\n  echo \"==> config directory '${CONFIG_DIR}' should be manually removed.\"\n  echo \"  rm -rf ${CONFIG_DIR}\"\nfi\n\nif [ -d \"/var/run/example\" ]\nthen\n  echo \"==> run directory '/var/run/example' should be manually removed.\"\n  echo \"  rm -rf /var/run/example\"\nfi\n\n# --------------------------------------------------------------------------------------\n# CUSTOM STUFF HERE\n# --------------------------------------------------------------------------------------\necho \"CUSTOM DE-INSTALL SCRIPT FINISHING\"\n",
+    "post-install": "PKG_NAME=\"example\"\n# --------------------------------------------------------------------------------------\n# CUSTOM STUFF HERE\n# --------------------------------------------------------------------------------------\nCONFIG_DIR=\"/tmp/CUSTOM\"\nCONFIG_FILE=\"${CONFIG_DIR}/example.env.CUSTOM\"\n\n\n\nPKG_USER=\"example\"\n\nif [ -n \"${PKG_ROOTDIR}\" ] && [ \"${PKG_ROOTDIR}\" != \"/\" ]; then\n  PW=\"/usr/sbin/pw -R ${PKG_ROOTDIR}\"\nelse\n  PW=/usr/sbin/pw\nfi\n\necho \"===> Creating user.\"\nif ! ${PW} groupshow ${PKG_USER} >/dev/null 2>&1; then\n  echo \"Group: '${PKG_USER}'.\"\n  ${PW} groupadd ${PKG_USER} -g 2001\nelse\n  echo \"Using existing group: '${PKG_USER}'.\"\nfi\n\nif ! ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then\n  echo \"User: '${PKG_USER}'.\"\n  ${PW} useradd ${PKG_USER} -u 2001 -g ${PKG_USER} -c \"${PKG_NAME} user\" -d /nonexistent -s /usr/sbin/nologin\nelse\n  echo \"Using existing user: '${PKG_USER}'.\"\nfi\n\n\n# --------------------------------------------------------------------------------------\n# MORE CUSTOM STUFF HERE\n# --------------------------------------------------------------------------------------\nif [ ! -f $CONFIG_FILE ]\nthen\n  echo \"===> Creating CUSTOM CONFIG dir ${CONFIG_DIR}\"\n  mkdir -p ${CONFIG_DIR}\n  echo \"===> Creating CUSTOM CONFIG in ${CONFIG_FILE}\"\n  echo \"# example CUSTOM CONFIG FILE\" > $CONFIG_FILE\n  echo 'FOO=\"bar\"' >> $CONFIG_FILE\n  echo 'BING=\"bing\"' >> $CONFIG_FILE\n  chmod 0444 $CONFIG_FILE\nfi\n"
   },
   "deps": {
     "tree": {
@@ -255,39 +258,56 @@ Number of packages to be installed: 1
 Using existing group: 'example'.
 Using existing user: 'example'.
 clear out the example.log so we can see what this invocation logs...
-rm: /var/log/example.log: No such file or directory
 -------------------------------------------------------------------------------
 you should not see the example app in yet
 -------------------------------------------------------------------------------
-root 55880  0.0  0.0 14164  2692  1  S+J  14:49   0:00.00 grep -i example
+root 67295  0.0  0.0 14164  2696  1  S+J  16:54   0:00.00 grep -i example
 -------------------------------------------------------------------------------
 start the example service
 -------------------------------------------------------------------------------
-Service example started as pid 55925.
+Service example started as pid 67340.
 -------------------------------------------------------------------------------
 the example service should be in the process list now
 -------------------------------------------------------------------------------
-example 55925 16.5  0.9 1406164 75812  -  SJ   14:49   0:00.42 /usr/local/lib/erlang28/erts-16.2/bin/beam.smp -- -root /usr/local/lib/erlang28 -bindir /usr/local/lib/erlang28/erts-16.2/bin -progname erl -- -home /nonexistent -- -pa /usr/local/libexec/example/envoy/ebin /usr/local/libexec/example/example/ebi
-root    55923  0.2  0.0   14184  2552  -  SsJ  14:49   0:00.00 daemon: example[55925] (daemon)
-example 55933  0.0  0.0   14076  2444  -  SsJ  14:49   0:00.00 erl_child_setup 234702
-root    55935  0.0  0.0   14164  2684  1  S+J  14:49   0:00.00 grep -i example
+example 67340 18.7  0.9 1413588 79048  -  SJ   16:54   0:00.44 /usr/local/lib/erlang28/erts-16.2/bin/beam.smp -- -root /usr/local/lib/erlang28 -bindir /usr/local/lib/erlang28/erts-16.2/bin -progname erl -- -home /nonexistent -- -pa /usr/local/libexec/example/envoy/ebin /usr/local/libexec/example/example/ebi
+root    67338  0.2  0.0   14184  2548  -  SsJ  16:54   0:00.00 daemon: example[67340] (daemon)
+example 67348  0.0  0.0   14076  2444  -  SsJ  16:54   0:00.00 erl_child_setup 234702
+root    67350  0.0  0.0   14164  2692  1  S+J  16:54   0:00.00 grep -i example
 -------------------------------------------------------------------------------
 the example service should show up as started
 -------------------------------------------------------------------------------
-example is running as pid 55925.
+example is running as pid 67340.
 -------------------------------------------------------------------------------
 the example service should show in the logs now
 Hello from example!
-environment: dict.from_list([#("BINDIR", "/usr/local/lib/erlang28/erts-16.2/bin"), #("BLOCKSIZE", "K"), #("DEBUGGING", ""), #("DEBUG_DO", ":"), #("DEBUG_SKIP", ""), #("EMU", "beam"), #("ERL_CRASH_DUMP", "/var/run/example/example_erl_crash.dump"), #("EXAMPLE_CONF_DIR", "/tmp"), #("FOO", "bar"), #("HOME", "/nonexistent"), #("LANG", "C.UTF-8"), #("MAIL", "/var/mail/example"), #("MM_CHARSET", "UTF-8"), #("PATH", "/usr/local/lib/erlang28/erts-16.2/bin:/usr/local/lib/erlang28/bin:/sbin:/bin:/usr/sbin:/usr/bin"), #("PROGNAME", "erl"), #("PWD", "/"), #("RC_PID", "55881"), #("RELEASE_TMP", "/var/run/example"), #("ROOTDIR", "/usr/local/lib/erlang28"), #("SHELL", "/usr/sbin/nologin"), #("USER", "example"), #("_TTY", "/dev/pts/1")])
+environment: dict.from_list([#("BINDIR", "/usr/local/lib/erlang28/erts-16.2/bin"), #("BLOCKSIZE", "K"), #("DEBUGGING", ""), #("DEBUG_DO", ":"), #("DEBUG_SKIP", ""), #("EMU", "beam"), #("ERL_CRASH_DUMP", "/var/run/example/example_erl_crash.dump"), #("EXAMPLE_CONF_DIR", "/tmp"), #("FOO", "bar"), #("HOME", "/nonexistent"), #("LANG", "C.UTF-8"), #("MAIL", "/var/mail/example"), #("MM_CHARSET", "UTF-8"), #("PATH", "/usr/local/lib/erlang28/erts-16.2/bin:/usr/local/lib/erlang28/bin:/sbin:/bin:/usr/sbin:/usr/bin"), #("PROGNAME", "erl"), #("PWD", "/"), #("RC_PID", "67296"), #("RELEASE_TMP", "/var/run/example"), #("ROOTDIR", "/usr/local/lib/erlang28"), #("SHELL", "/usr/sbin/nologin"), #("USER", "example"), #("_TTY", "/dev/pts/1")])
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 the example service should shut down
 -------------------------------------------------------------------------------
 Stopping example.
-Waiting for PIDS: 55925.
+Waiting for PIDS: 67340.
 -------------------------------------------------------------------------------
 the example service should no longer be in the process list
 -------------------------------------------------------------------------------
-root 56027  0.0  0.0 14164  2696  1  S+J  14:49   0:00.00 grep -i example
+root 67442  0.0  0.0  3788  2284  1  R+J  16:54   0:00.00 grep -i example
+-------------------------------------------------------------------------------
+uninstall the package
+-------------------------------------------------------------------------------
+Checking integrity... done (0 conflicting)
+Deinstallation has been requested for the following 1 packages (of 0 packages in the universe):
 
+Installed packages to be REMOVED:
+        example: 1.0.0
+
+Number of packages to be removed: 1
+[workstation.jail] [1/1] Deinstalling example-1.0.0...
+==> pkg user 'example' should be manually removed.
+  /usr/sbin/pw userdel example
+==> config directory '/tmp' should be manually removed.
+  rm -rf /tmp
+==> run directory '/var/run/example' should be manually removed.
+  rm -rf /var/run/example
+CUSTOM DE-INSTALL SCRIPT FINISHING
+[workstation.jail] [1/1] Deleting files for example-1.0.0: 100%
 ```

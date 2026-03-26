@@ -1,5 +1,5 @@
-import gleam/erlang/process
 import envoy
+import gleam/erlang/process
 import gleam/string
 import logging
 
