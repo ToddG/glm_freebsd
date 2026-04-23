@@ -15,13 +15,32 @@ Further documentation can be found at <https://hexdocs.pm/glm_freebsd>.
 
 We need a minimum of gleam 1.14 and erlang28:
 
+#### exec as root
 ```shell
-# use `latest`
-echo 'FreeBSD-ports: { url: "pkg+https://pkg.FreeBSD.org/${ABI}/latest" }' > /usr/local/etc/pkg/repos/FreeBSD.conf
+sudo su
+# use `latest` to get erlang 28
+mkdir -p /usr/local/etc/pkg/repos
+touch /usr/local/etc/pkg/repos/FreeBSD.conf
+`echo 'FreeBSD-ports: { url: "pkg+https://pkg.FreeBSD.org/${ABI}/latest" }' > /usr/local/etc/pkg/repos/FreeBSD.conf
 pkg update
 pkg install -y erlang-runtime28 gleam rebar3
+exit
+```
+
+#### update path and exec as normal user
+```
+PATH=/usr/local/lib/erlang28/bin:$PATH
 ./make.sh
 ./test_pkg.sh
+```
+
+#### test the install
+
+either should work...
+```shell
+./glm_freebsd --help
+# or
+gleam run -m glm_freebsd -- --help
 ```
 
 ## Usage
@@ -311,3 +330,9 @@ Number of packages to be removed: 1
 CUSTOM DE-INSTALL SCRIPT FINISHING
 [workstation.jail] [1/1] Deleting files for example-1.0.0: 100%
 ```
+
+## Links
+
+* https://siberoloji.com/how-to-create-a-freebsd-package-with-pkg-create-on-freebsd-operating-system/
+* https://man.freebsd.org/cgi/man.cgi?query=pkg&sektion=8
+* https://man.freebsd.org/cgi/man.cgi?query=pkg_create&sektion=3&apropos=0&manpath=FreeBSD+15.0-RELEASE+and+Ports.quarterly
