@@ -4,91 +4,84 @@ import clip/help
 import clip/opt.{type Opt}
 import gleam/io
 import gleam/string
-import glm_freebsd/config
-import glm_freebsd/freebsd_build
-import glm_freebsd/freebsd_templates
-import logging
-import simplifile
+import glm_freebsd/packager
 
 type App {
-  App(input: String, output: String, log: String)
+  App(
+    app_dir: String,
+    templates_dir: String,
+    staging_dir: String,
+    output_dir: String,
+  )
 }
 
-fn input_opt() -> Opt(String) {
-  opt.new("input") |> opt.help("path to target app (directory with gleam.toml)")
+fn app_dir_path_opt() -> Opt(String) {
+  opt.new("application")
+  |> opt.short("a")
+  |> opt.help(
+    "gleam target application directory (location of the target app's gleam.toml file)",
+  )
 }
 
-fn output_opt() -> Opt(String) {
+fn template_dir_path_opt() -> Opt(String) {
+  opt.new("templates")
+  |> opt.short("t")
+  |> opt.help("path to custom templates directory")
+  |> opt.default("./priv/templates/freebsd")
+}
+
+fn output_dir_path_opt() -> Opt(String) {
   opt.new("output")
-  |> opt.help("path to place generated files (will create output dir)")
+  |> opt.short("o")
+  |> opt.help("path to place generated (output) files (will create directory)")
 }
 
-fn log_opt() -> Opt(String) {
-  opt.new("log")
-  |> opt.default("info")
-  |> opt.help("log output verbosity, debug|warn|error")
+fn staging_dir_path_opt() -> Opt(String) {
+  opt.new("staging")
+  |> opt.short("s")
+  |> opt.help(
+    "path to place intermediate (staging) files (will create directory)",
+  )
 }
 
-fn templates() -> Command(App) {
+fn command() -> Command(App) {
   clip.command({
-    use input <- clip.parameter
-    use output <- clip.parameter
-    use log <- clip.parameter
+    use app_dir <- clip.parameter
+    use templates_dir <- clip.parameter
+    use staging_dir <- clip.parameter
+    use output_dir <- clip.parameter
 
-    App(input, output, log)
+    App(app_dir:, templates_dir:, staging_dir:, output_dir:)
   })
-  |> clip.opt(input_opt())
-  |> clip.opt(output_opt())
-  |> clip.opt(log_opt())
-}
-
-fn configure_logging(level: String) -> Nil {
-  let _ = logging.configure()
-  let level = level |> string.lowercase
-  let logging_level = case level {
-    "debug" -> logging.Debug
-    "info" -> logging.Info
-    "error" -> logging.Error
-    _ -> logging.Debug
-  }
-  let _ = logging.set_level(logging_level)
-  io.println("logging level set to: " <> level)
-  logging.log(logging.Info, "application starting...")
-}
-
-fn debug(s: String) -> Nil {
-  logging.log(
-    logging.Debug,
-    "------------------------------------------------------------------",
-  )
-  logging.log(logging.Debug, s)
-  logging.log(
-    logging.Debug,
-    "------------------------------------------------------------------",
-  )
+  |> clip.opt(app_dir_path_opt())
+  |> clip.opt(template_dir_path_opt())
+  |> clip.opt(staging_dir_path_opt())
+  |> clip.opt(output_dir_path_opt())
 }
 
 pub fn main() -> Nil {
   let result =
-    templates()
-    |> clip.help(help.simple("templates", "generate templates for target app"))
+    command()
+    |> clip.help(help.simple(
+      "package",
+      "package target gleam application as a FreeBSD package with service scripts",
+    ))
     |> clip.run(argv.load().arguments)
 
   case result {
-    Error(e) -> logging.log(logging.Error, e)
+    Error(e) -> io.println_error(e)
     Ok(app) -> {
-      let input_path = app.input
-      let output_path = app.output
-      configure_logging(app.log)
-      debug("load gleam.toml file")
-      let cfg = config.load_toml(input_path, output_path)
-      debug("create directories")
-      let assert Ok(_) = simplifile.create_directory_all(output_path)
-      debug("gen files from templates")
-      let _ =
-        freebsd_templates.gen_files_from_templates(cfg, input_path, output_path)
-      debug("package files into freebsd package")
-      let _ = freebsd_build.run_build(cfg, input_path, output_path)
+      case
+        packager.run(
+          app.app_dir,
+          app.templates_dir,
+          app.staging_dir,
+          app.output_dir,
+        )
+      {
+        Error(e) -> io.println_error(e |> string.inspect)
+        Ok(o) -> io.println(o)
+      }
       Nil
     }
   }

@@ -16,7 +16,6 @@ This app is composed of:
 pkg_user = true
 pkg_description = "This is a longer description .........................................................."
 pkg_maintainer = "someone@example.com"
-pkg_scripts = "post-install=post-install.sh,pre-deinstall=pre-deinstall.sh"
 pkg_config_dir = "/some/path/outside/of/the/application/space"
 pkg_env_file = "example.env"
 

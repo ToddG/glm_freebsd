@@ -1,0 +1,28 @@
+---
+version: 2.0.0
+title: standard_templates_/pkg-plist
+---
+@mode 0554
+@owner example
+@group wheel
+/usr/local/libexec/example/dummy_shipment_file
+@mode 0555
+@owner root
+@group wheel
+/etc/rc.d/example
+@mode 0555
+@owner root
+@group wheel
+/etc/rc.conf.d/example
+@mode 0700
+@owner 
+@group 
+/usr/local/wibble/wibble.txt
+@mode 0700
+@owner 
+@group 
+/usr/local/wobble/wobble.txt
+@dir /usr/local/wibble
+@dir /usr/local/wibble
+@include relative_path_to_another_plist_file
+

@@ -1,0 +1,6 @@
+---
+version: 2.0.0
+title: standard_templates_/rc_conf
+---
+example_enable="YES"
+

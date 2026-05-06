@@ -17,26 +17,19 @@ echo "NOTE: you will want to do this for YOUR app, prior to generating "
 echo "the freebsd package for YOUR app."
 pushd ./priv/example && gleam export erlang-shipment && popd
 
-#echo "-------------------------------------------------------------------------------"
-#echo "verify that glm_freebsd has been built"
-#echo "-------------------------------------------------------------------------------"
-#rm -rf ./tmp
-#if [ ! -e "./glm_freebsd" ]; then
-#  echo "must run ./make.sh to build `./glm_freebsd`, aborting!"
-#  exit 1
-#fi
 echo "-------------------------------------------------------------------------------"
 echo "building the FreeBSD application service package..."
 echo "-------------------------------------------------------------------------------"
-#./glm_freebsd templates --input ./priv/example/ --output ./tmp
-gleam run -- templates --input ./priv/example/ --output ./tmp --log info
+# run this from the glm_freebsd repo directory
+gleam run -- --toml ./priv/example/ --staging ./tmp/staging --output ./tmp/output
 
 echo "-------------------------------------------------------------------------------"
 echo "here is the generated manifest"
 echo "-------------------------------------------------------------------------------"
-cat ./tmp/freebsd/+MANIFEST | jq
+cat ./tmp/staging/+MANIFEST | jq
+cat ./tmp/staging/pkg-plist
 
-if [ ! -e "example-1.0.0.pkg" ]; then
+if [ ! -e "./tmp/output/example-1.0.0.pkg" ]; then
   echo "package `example-1.0.0.pkg` was not created, aborting!"
   exit 1
 fi

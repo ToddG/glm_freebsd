@@ -1,6 +1,7 @@
 # glm_freebsd
 
-A Gleam package that allows you to easily create FreeBSD packages for your Gleam applications, along with a service script to manage the application (e.g. start|stop).
+A Gleam CLI tool that allows you to easily package Gleam Applications as FreeBSD packages. The FreeBSD
+packages install as FreeBSD services, including service scripts to manage the application (e.g. start|stop).
 
 This is based on https://github.com/patmaddox/ex_freebsd
 
@@ -11,11 +12,14 @@ Further documentation can be found at <https://hexdocs.pm/glm_freebsd>.
 
 ## Quickstart
 
-### Install gleam and erlang
+### Dependencies
+ 
+* gleam >= 1.14
+* erlang >= erlang28
+* make
 
-We need a minimum of gleam 1.14 and erlang28:
+#### Install gleam and erlang
 
-#### exec as root
 ```shell
 sudo su
 # use `latest` to get erlang 28
@@ -27,89 +31,186 @@ pkg install -y erlang-runtime28 gleam rebar3
 exit
 ```
 
-#### update path and exec as normal user
+#### Update path and exec as normal user
 ```
 PATH=/usr/local/lib/erlang28/bin:$PATH
-./make.sh
-./test_pkg.sh
-```
-
-#### test the install
-
-either should work...
-```shell
-./glm_freebsd --help
-# or
-gleam run -m glm_freebsd -- --help
+./make
 ```
 
 ## Usage
 
-### Create a gleam app
+### Help
+
+```bash
+gleam run -- --help
+   Compiled in 0.05s
+    Running glm_freebsd.main
+package
+
+  package target gleam application as a FreeBSD package with service scripts
+
+Usage:
+
+  package [OPTIONS]
+
+Options:
+
+  (--application,-a APPLICATION)        gleam target application directory (location of the target app's gleam.toml file)
+  [--templates,-t TEMPLATES]            path to custom templates directory (default: "./priv/templates/freebsd")
+  (--staging,-s STAGING)                path to place intermediate (staging) files (will create directory)
+  (--output,-o OUTPUT)                  path to place generated (output) files (will create directory)
+  [--help,-h]                           Print this help
+```
+
+
+### Create a new gleam app
+
+This gleam app will be packaged as a FreeBSD (service) package...
 
 ```bash
 $ gleam new APPNAME
+$ cd APPNAME
 ```
 
 ### Update the APPNAME/gleam.toml 
 
-Add the relevant FreeBSD package info to the gleam.toml
+Add the relevant FreeBSD package info to the ./gleam.toml
 
-```bash
-$ cd APPNAME
-APPNAME $ vim gleam.toml
-```
-
-Add these elements:
+See [this example gleam.toml](./priv/example/gleam.toml).
 
 ```toml
 [freebsd]
-pkg_user = true
-pkg_description = "This is a longer description .........................................................."
-pkg_maintainer = "someone@example.com"
-pkg_config_dir = "/some/path/outside/of/the/application/space"
+pkg_origin = "example_company/example"
+pkg_comment = "A simple one-line comment about this package."
+# optional
+pkg_arch = "freebsd:15:x86:64"
+pkg_www = "https://github.com/toddg/some_repo"
+# optional
+pkg_license_logic = "single"
+# optional
+pkg_licenses = ["MIT"]
+pkg_description = """
+    line 01 : multi-line-package description....
+    line 02 : multi-line-package description....
+    line 03 : multi-line-package description....
+    line 04 : multi-line-package description....
+    line 05 : multi-line-package description....
+    """
+pkg_maintainer = "package_maintainer@example.com"
+# optional
+pkg_config_dir = "/tmp/example"
+# optional
 pkg_env_file = "example.env"
+# optional
+pkg_user_name = "example"
+pkg_user_uid = "1234"
+# optional
+pkg_proc_name = "/usr/local/lib/erlang28/*/bin/beam.smp"
+# optional
+pkg_path_extensions = "/usr/local/lib/erlang28/bin"
+# optional
+pkg_var_dir = "/var/example"
+# optional
+pkg_prefix = "/usr/local"
+# optional
+pkg_command = "entrypoint.sh"
+# optional
+pkg_command_args = "run"
+# optional
+pkg_daemon_flags = ""
+pkg_plist_lines = [
+    { type = "file", src = "priv/data/wibble.txt", dest = "/usr/local/wibble/wibble.txt", mode = "0700", owner = "", group = "" },
+    { type = "directory", src_dir = "priv/data/wobble_dir", dest_dir = "/usr/local/wobble", mode = "0700", owner = "", group = "" },
+    { type = "dir_directive", path = "/usr/local/wibble" },
+    { type = "dir_directive", path = "/usr/local/wobble" },
+]
 
-[freebsd.deps]
-list = "pstree,tree"
+# optional
+[[freebsd.dependencies]]
+name = "vim"
+version = "9.2.0204"
+origin = "editors/vim"
 
-[freebsd.deps.pstree]
-version = "2.36"
-origin = "sysutils/pstree"
-
-[freebsd.deps.tree]
+# optional
+[[freebsd.dependencies]]
+name = "tree"
 version = "2.2.1"
 origin = "sysutils/tree"
+
+# optional
+[[freebsd.pairs]]
+key = "key1"
+value = "value1"
+
+# optional
+[[freebsd.pairs]]
+key = "key2"
+value = "value2"
+
+# optional
+[[freebsd.pairs]]
+key = "custom_temp_dir"
+value = "/tmp/example_temp_dir"
 ```
-
-
 
 ### Create an erlang-shipment
 
 ```bash
+gleam format
+gleam check
+gleam test
 gleam export erlang-shipment
-```
-
-### Build the `glm_freebsd` tool (if not already built)
-
-```shell
-$ make.sh
 ```
 
 ### Create a FreeBSD package
 
+See the [Makefile](./Makefile) for more examples.
+
 ```bash
-# clear the temporary build directory, can be anything
-rm -rf ./tmp 
+# change directories to the glm_freebsd app (this app) so you can run the CLI tool
+cd [glm_freebsd repo directory]
 
-# run glm_freebsd to generate the package, the package file will be in this directory upon completion
-./glm_freebsd templates --input [PATH_TO_YOUR_APPNAME_TOML_FILE] --output ./tmp
+# run this cli tool
+gleam run -- -a [PATH TO YOUR TARGET APP TO PACKAGE] -s [PATH TO A STAGING DIRECTORY] -o [PATH TO AN OUTPUT DIRECTORY TO PUT THE PACKAGE]
 
-# try installing the package in FreeBSD
-sudo pkg install [PATH_TO_YOUR_GENERATED_PACKAGE_FILE].pkg
+# install the generated package 
+sudo pkg install -y [OUTPUT DIR]/[APP_NAME-VERSION].pkg
+
+# start the service
+sudo service [APP_NAME] start
 ```
 
-See the [test_pkg.sh](./test_pkg.sh) for further details.
+### Create a FreeBSD package with custom templates
+
+```bash
+```bash
+# change directories to the glm_freebsd app (this app) so you can run the CLI tool
+cd [glm_freebsd repo directory]
+
+# copy the default templates to a directory, typically the `priv` dir in your target app
+cp ./priv/templates/freebsd/* [APP_PATH]/priv/templates
+
+# edit the custom templates in [APP_PATH]/priv/templates
+
+# run the cli tool with the `-t` option to override the location of the templates
+gleam run -- -a [PATH TO YOUR TARGET APP TO PACKAGE] -s [PATH TO A STAGING DIRECTORY] -o [PATH TO AN OUTPUT DIRECTORY TO PUT THE PACKAGE] -t [APP_PATH]/priv/templates
+
+# install the generated package 
+sudo pkg install -y [OUTPUT DIR]/[APP_NAME-VERSION].pkg
+
+# start the service
+sudo service [APP_NAME] start
+```
+
+#### Custom Templates and Custom Vars
+
+The reason you can include arbitrary key/value pairs in the gleam.toml file is to support custom templates.
+
+```toml
+[[freebsd.pairs]]
+key = "key2"
+value = "value2"
+```
 
 ## Environment Files and 12 Factor Apps
 
@@ -117,11 +218,7 @@ Applications being bundled into a FreeBSD Service will almost certainly require 
 concept of 12 factor apps, this configuration should be external to the app and be _provided_ to the application 
 by the runtime.
 
-By default, at runtime, the environment file will be read from the applications configuration directory:
-
-       /usr/local/etc/[PACKAGE_NAME].d/[PACKAGE_NAME].env
-
-However, the location that the service management looks for the configuration file can be configured via these fields in gleam.toml:
+The location that the service management looks for the configuration file can be configured via these fields in gleam.toml:
 
        [freebsd]
        pkg_config_dir=...
@@ -130,205 +227,89 @@ However, the location that the service management looks for the configuration fi
 The configuration file can be placed in the correct location by your IAC 
 (infrastructure-as-code, e.g. ansible,chef,puppet,pulumi,terraform,etc.).
 
-When the service manager launches the service, it reads this environment file and includes these environment key/value pairs
-in the process environment the service instance is started with.
+When the service manager launches the service, it reads this environment file and includes these environment key/value pairs in the process environment the service instance is started with.
 
 ## Toml Elements
 
-We pull the package name and version from the toml here:
+Package name and version are extracted from the toml here:
 ```toml
 name = "example"
 version = "1.0.0"
 ```
 
-The rest of the data comes from the [freebsd] described below:
+The rest of the data comes from the [freebsd] sections. This is fully documented in the [Config type](src/glm_freebsd/packager.gleam):
 
-| TOML FIELD              | DESCRIPTION                                                                                                                                               |
-|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [freebsd]               | this is the root toml element that this packaging code uses                                                                                               |
-| pkg_user [true          | false] : if true then the package creates a user when installed. defaults to true.                                                                        |
-| pkg_username            | the username to create if pkg_user is true. defaults to the value in 'name' above.                                                                        |
-| pkg_description         | a longer description used by the packaging system.                                                                                                        |
-| pkg_maintainer          | email address of the package maintainer. e.g. someone@example.com                                                                                         |
-| pkg_scripts             | comma separated k=v pairs, where k=script name, and value is a file in the output directory<br/> typically a file generated from a template.defaults to:  "post-install=post-install.sh,pre-deinstall=pre-deinstall.sh"|
-
-
-| TOML FIELD              | DESCRIPTION                                                                                                                                               |
-|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [freebsd.deps]          | the root of the list of OS package dependencies that YOUR package needs in order to function. `list` is the only child element.                           |
-| list                    | a list of the packages (DEP_NAME) that will follow.                                                                                                       |
-
-
-| TOML FIELD              | DESCRIPTION                                                                                                                                               |
-|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [freebsd.deps.DEP_NAME] | the root of a FreeBSD OS package dependency declaration. `version` and `origin` are the only child elements.                                              |
-| version | the dependency version                                                                                                                                    |
-| origin | the dependency origin                                                                                                                                     |
-
-There are other fields that you might want to use. See the [config.gleam](./src/glm_freebsd/config.gleam) file for fulll details.
-
-## Example run
-
-Start a test run
-
-```bash
-# ./test_pkg.sh
-```
-
-Output...
-
-```bash
-
-t@workstation:/opt/repos/glm_freebsd (toddg/custom-templates)# ./test_pkg.sh
-update path with erlang28 binary, as that's needed for gleam
-and/or the gleam json library
--------------------------------------------------------------------------------
-build the 'example' app's erlang-shipment.
--------------------------------------------------------------------------------
-NOTE: you will want to do this for YOUR app, prior to generating
-the freebsd package for YOUR app.
-/opt/repos/glm_freebsd/priv/example /opt/repos/glm_freebsd
-  Compiling gleam_stdlib
-  Compiling envoy
-  Compiling gleam_erlang
-  Compiling gleeunit
-  Compiling logging
-  Compiling example
-   Compiled in 0.67s
-   Exported example
-
-Your Erlang shipment has been generated to /opt/repos/glm_freebsd/priv/example/build/erlang-shipment.
-
-It can be copied to a compatible server with Erlang installed and run with
-one of the following scripts:
-    - entrypoint.ps1 (PowerShell script)
-    - entrypoint.sh (POSIX Shell script)
-
-/opt/repos/glm_freebsd
--------------------------------------------------------------------------------
-building the FreeBSD application service package...
--------------------------------------------------------------------------------
-   Compiled in 0.02s
-    Running glm_freebsd.main
-logging level set to: info
-INFO application starting...
-INFO copied custom templates over base templates, custom_templates_dir: ./priv/example//priv/package/templates/, target_dir: ./tmp/templates
-INFO wrote ./tmp/rc_conf
-INFO wrote ./tmp/post-install.sh
-INFO wrote ./tmp/pre-deinstall.sh
-INFO wrote ./tmp/rc
-INFO wrote ./tmp/freebsd/+MANIFEST
-INFO updated entrypoint.sh permissions: ./tmp/freebsd/stage/usr/local/libexec/example/entrypoint.sh
-INFO wrote ./tmp/freebsd/stage/usr/local/etc/rc.d/example
-INFO wrote ./tmp/freebsd/stage/usr/local/etc/rc.conf.d/example
-INFO wrote ./tmp/freebsd/pkg-plist
-INFO
-INFO Build completed successfully
--------------------------------------------------------------------------------
-here is the generated manifest
--------------------------------------------------------------------------------
-{
-  "name": "example",
-  "version": "1.0.0",
-  "origin": "devel/example",
-  "comment": "An example app that will be used to create a FreeBSD package (with service scripts).",
-  "www": "git@github.com:someuser/example_app.git",
-  "maintainer": "someone@example.com",
-  "prefix": "/usr/local",
-  "desc": "This is a longer description ..........................................................",
-  "scripts": {
-    "pre-deinstall": "CONFIG_DIR=\"/tmp\"\n\n\nPKG_USER=\"example\"\n\nif [ -n \"${PKG_ROOTDIR}\" ] && [ \"${PKG_ROOTDIR}\" != \"/\" ]; then\n  PW=\"/usr/sbin/pw -R ${PKG_ROOTDIR}\"\nelse\n  PW=/usr/sbin/pw\nfi\nif ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then\n  echo \"==> pkg user '${PKG_USER}' should be manually removed.\"\n  echo \"  ${PW} userdel ${PKG_USER}\"\nfi\n\n\nif [ -d \"${CONFIG_DIR}\" ]\nthen\n  echo \"==> config directory '${CONFIG_DIR}' should be manually removed.\"\n  echo \"  rm -rf ${CONFIG_DIR}\"\nfi\n\nif [ -d \"/var/run/example\" ]\nthen\n  echo \"==> run directory '/var/run/example' should be manually removed.\"\n  echo \"  rm -rf /var/run/example\"\nfi\n\n# --------------------------------------------------------------------------------------\n# CUSTOM STUFF HERE\n# --------------------------------------------------------------------------------------\necho \"CUSTOM DE-INSTALL SCRIPT FINISHING\"\n",
-    "post-install": "PKG_NAME=\"example\"\n# --------------------------------------------------------------------------------------\n# CUSTOM STUFF HERE\n# --------------------------------------------------------------------------------------\nCONFIG_DIR=\"/tmp/CUSTOM\"\nCONFIG_FILE=\"${CONFIG_DIR}/example.env.CUSTOM\"\n\n\n\nPKG_USER=\"example\"\n\nif [ -n \"${PKG_ROOTDIR}\" ] && [ \"${PKG_ROOTDIR}\" != \"/\" ]; then\n  PW=\"/usr/sbin/pw -R ${PKG_ROOTDIR}\"\nelse\n  PW=/usr/sbin/pw\nfi\n\necho \"===> Creating user.\"\nif ! ${PW} groupshow ${PKG_USER} >/dev/null 2>&1; then\n  echo \"Group: '${PKG_USER}'.\"\n  ${PW} groupadd ${PKG_USER} -g 2001\nelse\n  echo \"Using existing group: '${PKG_USER}'.\"\nfi\n\nif ! ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then\n  echo \"User: '${PKG_USER}'.\"\n  ${PW} useradd ${PKG_USER} -u 2001 -g ${PKG_USER} -c \"${PKG_NAME} user\" -d /nonexistent -s /usr/sbin/nologin\nelse\n  echo \"Using existing user: '${PKG_USER}'.\"\nfi\n\n\n# --------------------------------------------------------------------------------------\n# MORE CUSTOM STUFF HERE\n# --------------------------------------------------------------------------------------\nif [ ! -f $CONFIG_FILE ]\nthen\n  echo \"===> Creating CUSTOM CONFIG dir ${CONFIG_DIR}\"\n  mkdir -p ${CONFIG_DIR}\n  echo \"===> Creating CUSTOM CONFIG in ${CONFIG_FILE}\"\n  echo \"# example CUSTOM CONFIG FILE\" > $CONFIG_FILE\n  echo 'FOO=\"bar\"' >> $CONFIG_FILE\n  echo 'BING=\"bing\"' >> $CONFIG_FILE\n  chmod 0444 $CONFIG_FILE\nfi\n"
-  },
-  "deps": {
-    "tree": {
-      "version": "2.2.1",
-      "origin": "sysutils/tree"
-    },
-    "pstree": {
-      "version": "2.36",
-      "origin": "sysutils/pstree"
-    }
-  },
-  "users": [
-    "example"
-  ]
+```gleam
+/// Configuration object built from the gleam.toml.
+pub type Config {
+  Config(
+  /// Gleam application name, used in template(s): +MANIFEST, required (no default).
+  app_name: String,
+  /// Gleam application version, used in template(s): +MANIFEST, required (no default).
+  app_version: String,
+  /// Freebsd package user name, used in +POST_INSTALL and rc, defaults to `app_name`.
+  pkg_user_name: String,
+  /// Freebsd package user uid, used in +POST_INSTALL and rc, required (no default).
+  pkg_user_uid: String,
+  /// Freebsd package long description, used in +DESC, required (no default).
+  pkg_description: String,
+  /// Freebsd package maintainer email address, used in +MANIFEST, required (no default).
+  pkg_maintainer: String,
+  /// Freebsd package dependencies, used in +MANIFEST, required (no default).
+  pkg_dependencies: List(DependencyConfig),
+  /// Variable used in template(s): rc.conf; the process name to be used when looking for this package,
+  /// defaults to /usr/local/lib/erlang28/*/bin/beam.smp.
+  pkg_proc_name: String,
+  /// Variable used in template(s): +POST_INSTALL, +PRE_DEINSTALL, rc; the package configuration directory,
+  /// required (no default). Directory is NOT automatically created by the package installation. It is
+  /// expected that this configuration directory and file will be provided by an orchestration service or
+  /// manually by a system administrator. Service configuration is separate from service installation.
+  pkg_config_dir: String,
+  /// Variable used in template(s): rc; config; path_extensions are ":" delimited paths to prepend to the
+  /// PATH variable, defaults to /usr/local/lib/erlang28/bin.
+  pkg_path_extensions: String,
+  /// Variable used in template(s): +PRE_DEINSTALL; var_dir is the data dir for this package, defaults to "/var/APP_NAME". This directory is NOT created by the installer.
+  pkg_var_dir: String,
+  /// Variable used in template(s): rc; defaults to APP_NAME.env.
+  pkg_env_file: String,
+  /// The path where the files contained in this package are installed, used in template(s): rc, +MANIFEST,
+  /// defaults to /usr/local.
+  pkg_prefix: String,
+  /// Variable used in template(s): rc; defaults to 'entrypoint.sh'.
+  pkg_command: String,
+  /// Variable used in template(s): rc; defaults to 'run'.
+  pkg_command_args: String,
+  /// Variable used in template(s): rc; defaults to ''.
+  pkg_daemon_flags: String,
+  /// Plist line entries, details files to copy into the target system, plus keywords to
+  /// control how those files are copied, permissions, etc, defaults to [].
+  pkg_plist_lines: List(PlistLine),
+  /// This entry sets the	freebsd package's origin to pkg-origin.
+  /// This is a string of	the form category/port-dir which designates the port
+  ///	this package was built from, used in template(s): rc; defaults to 'private/APP_NAME'
+  pkg_origin: String,
+  /// Comment-string is a	one-line description of	this package.	it is
+  /// the	equivalent of the comment variable for a port, not a	way to
+  /// put	comments in a +manifest	file, used in template(s): +MANIFEST, required (no default).
+  pkg_comment: String,
+  /// The	architecture of the	machine	the package was built on.
+  /// cpu-type takes values like x86, amd64, freebsd:15:x86:64,
+  /// used in template(s): +MANIFEST, defaults to 'freebsd:15:x86:64'.
+  pkg_arch: String,
+  /// The	software's official website, used in template(s): +MANIFEST, +DISPLAY, required, no default.
+  pkg_www: String,
+  /// Package license, used in template(s): +MANIFEST, defaults to 'single'.
+  pkg_license_logic: String,
+  /// Package licenses, e.g. licenses: ["MIT"], used in template(s): +MANIFEST, defaults to 'PRIVATE'.
+  pkg_licenses: List(String),
+  /// Unstructured key/value pairs to enable sending any string data to the templating system, useful for custom
+  /// templates, can be used in any custom template. You can elect to use custom templates instead of the default
+  /// templates by passing the `templates` parameter to the CLI. If you need templates to start out with, copy
+  /// the default templates from ./priv/templates/freebsd to a directory of your choosing. Modify the copied
+  /// templates as you wish, and then specify that directory on the CLI as previously mentioned.
+  pkg_pairs: List(ConfigPair),
+  )
 }
--------------------------------------------------------------------------------
-building the FreeBSD application service package...
--------------------------------------------------------------------------------
-create the environment file
-install the (local) package
-Updating FreeBSD-ports repository catalogue...
-FreeBSD-ports repository is up to date.
-Updating FreeBSD-ports-kmods repository catalogue...
-FreeBSD-ports-kmods repository is up to date.
-All repositories are up to date.
-Checking integrity... done (0 conflicting)
-The following 1 package(s) will be affected (of 0 checked):
-
-New packages to be INSTALLED:
-        example: 1.0.0 [unknown-repository]
-
-Number of packages to be installed: 1
-[workstation.jail] [1/1] Installing example-1.0.0...
-[workstation.jail] Extracting example-1.0.0: 100%
-===> Creating user.
-Using existing group: 'example'.
-Using existing user: 'example'.
-clear out the example.log so we can see what this invocation logs...
--------------------------------------------------------------------------------
-you should not see the example app in yet
--------------------------------------------------------------------------------
-root 67295  0.0  0.0 14164  2696  1  S+J  16:54   0:00.00 grep -i example
--------------------------------------------------------------------------------
-start the example service
--------------------------------------------------------------------------------
-Service example started as pid 67340.
--------------------------------------------------------------------------------
-the example service should be in the process list now
--------------------------------------------------------------------------------
-example 67340 18.7  0.9 1413588 79048  -  SJ   16:54   0:00.44 /usr/local/lib/erlang28/erts-16.2/bin/beam.smp -- -root /usr/local/lib/erlang28 -bindir /usr/local/lib/erlang28/erts-16.2/bin -progname erl -- -home /nonexistent -- -pa /usr/local/libexec/example/envoy/ebin /usr/local/libexec/example/example/ebi
-root    67338  0.2  0.0   14184  2548  -  SsJ  16:54   0:00.00 daemon: example[67340] (daemon)
-example 67348  0.0  0.0   14076  2444  -  SsJ  16:54   0:00.00 erl_child_setup 234702
-root    67350  0.0  0.0   14164  2692  1  S+J  16:54   0:00.00 grep -i example
--------------------------------------------------------------------------------
-the example service should show up as started
--------------------------------------------------------------------------------
-example is running as pid 67340.
--------------------------------------------------------------------------------
-the example service should show in the logs now
-Hello from example!
-environment: dict.from_list([#("BINDIR", "/usr/local/lib/erlang28/erts-16.2/bin"), #("BLOCKSIZE", "K"), #("DEBUGGING", ""), #("DEBUG_DO", ":"), #("DEBUG_SKIP", ""), #("EMU", "beam"), #("ERL_CRASH_DUMP", "/var/run/example/example_erl_crash.dump"), #("EXAMPLE_CONF_DIR", "/tmp"), #("FOO", "bar"), #("HOME", "/nonexistent"), #("LANG", "C.UTF-8"), #("MAIL", "/var/mail/example"), #("MM_CHARSET", "UTF-8"), #("PATH", "/usr/local/lib/erlang28/erts-16.2/bin:/usr/local/lib/erlang28/bin:/sbin:/bin:/usr/sbin:/usr/bin"), #("PROGNAME", "erl"), #("PWD", "/"), #("RC_PID", "67296"), #("RELEASE_TMP", "/var/run/example"), #("ROOTDIR", "/usr/local/lib/erlang28"), #("SHELL", "/usr/sbin/nologin"), #("USER", "example"), #("_TTY", "/dev/pts/1")])
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-the example service should shut down
--------------------------------------------------------------------------------
-Stopping example.
-Waiting for PIDS: 67340.
--------------------------------------------------------------------------------
-the example service should no longer be in the process list
--------------------------------------------------------------------------------
-root 67442  0.0  0.0  3788  2284  1  R+J  16:54   0:00.00 grep -i example
--------------------------------------------------------------------------------
-uninstall the package
--------------------------------------------------------------------------------
-Checking integrity... done (0 conflicting)
-Deinstallation has been requested for the following 1 packages (of 0 packages in the universe):
-
-Installed packages to be REMOVED:
-        example: 1.0.0
-
-Number of packages to be removed: 1
-[workstation.jail] [1/1] Deinstalling example-1.0.0...
-==> pkg user 'example' should be manually removed.
-  /usr/sbin/pw userdel example
-==> config directory '/tmp' should be manually removed.
-  rm -rf /tmp
-==> run directory '/var/run/example' should be manually removed.
-  rm -rf /var/run/example
-CUSTOM DE-INSTALL SCRIPT FINISHING
-[workstation.jail] [1/1] Deleting files for example-1.0.0: 100%
 ```
 
 ## Links

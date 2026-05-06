@@ -1,0 +1,16 @@
+---
+version: 2.0.0
+title: custom_templates_/+DESC
+---
+Gleam/Erlang application 'example : 1.0.0':
+
+line 01 : multi-line-package description....
+line 02 : multi-line-package description....
+line 03 : multi-line-package description....
+line 04 : multi-line-package description....
+line 05 : multi-line-package description....
+
+
+# key1=value1
+# key2=value2
+

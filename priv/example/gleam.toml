@@ -2,7 +2,7 @@ name = "example"
 version = "1.0.0"
 
 description = "An example app that will be used to create a FreeBSD package (with service scripts)."
-repository = { type = "github", user = "someuser", repo = "git@github.com:someuser/example_app.git" }
+repository = { type = "github", user = "someuser", repo = "git@github.com:someuser/example.git" }
 
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
@@ -14,20 +14,56 @@ logging = ">= 1.3.0 and < 2.0.0"
 gleeunit = ">= 1.0.0 and < 2.0.0"
 
 [freebsd]
-pkg_user = true
-pkg_description = "This is a longer description .........................................................."
-pkg_maintainer = "someone@example.com"
-pkg_scripts = "post-install=post-install.sh,pre-deinstall=pre-deinstall.sh"
-pkg_config_dir = "/tmp"
+pkg_origin = "example_company/example"
+pkg_comment = "A simple one-line comment about this package."
+pkg_arch = "freebsd:15:x86:64"
+pkg_www = "https://github.com/toddg/some_repo"
+pkg_license_logic = "single"
+pkg_licenses = ["MIT"]
+pkg_description = """
+    line 01 : multi-line-package description....
+    line 02 : multi-line-package description....
+    line 03 : multi-line-package description....
+    line 04 : multi-line-package description....
+    line 05 : multi-line-package description....
+    """
+pkg_maintainer = "package_maintainer@example.com"
+pkg_config_dir = "/tmp/example"
 pkg_env_file = "example.env"
+pkg_user_name = "example"
+pkg_user_uid = "1234"
+pkg_proc_name = "/usr/local/lib/erlang28/*/bin/beam.smp"
+pkg_path_extensions = "/usr/local/lib/erlang28/bin"
+pkg_var_dir = "/var/example"
+pkg_prefix = "/usr/local"
+pkg_command = "entrypoint.sh"
+pkg_command_args = "run"
+pkg_daemon_flags = ""
+pkg_plist_lines = [
+    { type = "file", src = "priv/data/wibble.txt", dest = "/usr/local/wibble/wibble.txt", mode = "0700", owner = "", group = "" },
+    { type = "directory", src_dir = "priv/data/wobble_dir", dest_dir = "/usr/local/wobble", mode = "0700", owner = "", group = "" },
+    { type = "dir_directive", path = "/usr/local/wibble" },
+    { type = "dir_directive", path = "/usr/local/wobble" },
+]
 
-[freebsd.deps]
-list = "pstree,tree"
+[[freebsd.dependencies]]
+name = "vim"
+version = "9.2.0204"
+origin = "editors/vim"
 
-[freebsd.deps.pstree]
-version = "2.36"
-origin = "sysutils/pstree"
-
-[freebsd.deps.tree]
+[[freebsd.dependencies]]
+name = "tree"
 version = "2.2.1"
 origin = "sysutils/tree"
+
+[[freebsd.pairs]]
+key = "key1"
+value = "value1"
+
+[[freebsd.pairs]]
+key = "key2"
+value = "value2"
+
+[[freebsd.pairs]]
+key = "custom_temp_dir"
+value = "/tmp/example_temp_dir"

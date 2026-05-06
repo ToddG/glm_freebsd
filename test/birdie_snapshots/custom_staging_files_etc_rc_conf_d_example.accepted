@@ -1,0 +1,8 @@
+---
+version: 2.0.0
+title: custom_staging_files_/etc/rc.conf.d/example
+---
+example_enable="YES"
+# key1=value1
+# key2=value2
+

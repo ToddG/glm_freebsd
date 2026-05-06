@@ -1,0 +1,71 @@
+---
+version: 2.0.0
+title: standard_staging_files_/etc/rc.d/example
+---
+#!/bin/sh
+#
+# PROVIDE: example
+# REQUIRE: DAEMON
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name=example
+rcvar=${name}_enable
+
+load_rc_config $name
+
+pidfile="/var/run/${name}.pid"
+procname="beam.smp"
+confdir="/tmp/example"
+logfile="/var/log/${name}.log"
+
+export PATH=/usr/local/lib/erlang28/bin:$PATH
+
+example_env_file="/tmp/example/example.env"
+
+command="/usr/local/libexec/example/entrypoint.sh"
+command_args="run"
+start_precmd="${name}_prestart"
+start_postcmd="${name}_poststart"
+start_cmd="${name}_start"
+remote_cmd="${name}_remote"
+extra_commands="remote"
+
+EXAMPLE_CONF_DIR="${confdir}"
+: ${RELEASE_TMP:="/var/run/${name}"}
+: ${ERL_CRASH_DUMP:="${RELEASE_TMP}/${name}_erl_crash.dump"}
+
+example_prestart()
+{
+  if [ ! -d "${RELEASE_TMP}" ]; then
+    echo "Creating ${RELEASE_TMP}."
+    mkdir $RELEASE_TMP
+    chmod 740 $RELEASE_TMP
+    echo "Setting ${RELEASE_TMP} owner to example."
+    chown -R example:example $RELEASE_TMP
+  fi
+}
+
+example_poststart()
+{
+  pid="$(cat ${pidfile})"
+  echo "Service ${name} started as pid ${pid}."
+}
+
+example_start()
+{
+  export EXAMPLE_CONF_DIR RELEASE_TMP ERL_CRASH_DUMP
+
+  rm -f ${pidfile}
+  daemon -t $name -p $pidfile -f -H -o $logfile -u example  env PATH=$PATH $command $command_args
+}
+
+example_remote()
+{
+  export TERM=xterm
+  env PATH=$PATH $command shell
+}
+
+run_rc_command "$@"
+

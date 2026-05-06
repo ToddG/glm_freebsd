@@ -1,0 +1,6 @@
+---
+version: 2.0.0
+title: standard_staging_files_/etc/rc.conf.d/example
+---
+example_enable="YES"
+

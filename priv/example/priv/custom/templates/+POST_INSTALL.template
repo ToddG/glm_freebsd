@@ -1,13 +1,12 @@
-PKG_NAME="{{ pkg_name }}"
-# --------------------------------------------------------------------------------------
-# CUSTOM STUFF HERE
-# --------------------------------------------------------------------------------------
-CONFIG_DIR="{{ pkg_config_dir }}/CUSTOM"
+PKG_NAME="{{ app_name }}"
+CONFIG_DIR="{{ pkg_config_dir }}"
 CONFIG_FILE="${CONFIG_DIR}/{{ pkg_env_file }}.CUSTOM"
+CUSTOM_TEMP_DIR="{{ pair_custom_temp_dir }}"
 
+mkdir -p ${CUSTOM_TEMP_DIR}
+touch ${CUSTOM_TEMP_DIR}/dummyfile.txt
 
-{{#if pkg_user }}
-PKG_USER="{{ pkg_username }}"
+PKG_USER="{{ pkg_user_name }}"
 
 if [ -n "${PKG_ROOTDIR}" ] && [ "${PKG_ROOTDIR}" != "/" ]; then
   PW="/usr/sbin/pw -R ${PKG_ROOTDIR}"
@@ -29,7 +28,6 @@ if ! ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then
 else
   echo "Using existing user: '${PKG_USER}'."
 fi
-{{/if }}
 
 # --------------------------------------------------------------------------------------
 # MORE CUSTOM STUFF HERE
@@ -39,8 +37,10 @@ then
   echo "===> Creating CUSTOM CONFIG dir ${CONFIG_DIR}"
   mkdir -p ${CONFIG_DIR}
   echo "===> Creating CUSTOM CONFIG in ${CONFIG_FILE}"
-  echo "# {{ pkg_name }} CUSTOM CONFIG FILE" > $CONFIG_FILE
+  echo "# ${PKG_NAME} CUSTOM CONFIG FILE" > $CONFIG_FILE
   echo 'FOO="bar"' >> $CONFIG_FILE
   echo 'BING="bing"' >> $CONFIG_FILE
   chmod 0444 $CONFIG_FILE
 fi
+# key1={{ pair_key1 }}
+# key2={{ pair_key2 }}

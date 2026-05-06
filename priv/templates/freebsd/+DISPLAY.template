@@ -1,0 +1,11 @@
+Gleam/Erlang application '{{ app_name }} : {{ app_version }}' install complete.
+
+To uninstall:
+
+  pkg delete {{ app_name }}
+
+Links:
+* {{ pkg_www }}
+* https://gleam.run/
+* https://www.erlang.org/
+

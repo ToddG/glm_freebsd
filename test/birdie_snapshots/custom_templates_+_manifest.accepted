@@ -1,0 +1,21 @@
+---
+version: 2.0.0
+title: custom_templates_/+MANIFEST
+---
+name: "example"
+version: "1.0.0"
+origin: "example_company/example"
+comment: "A simple one-line comment about this packge."
+arch: "freebsd:15:x86:64"
+www: "https://github.com/toddg/some_repo"
+maintainer: "package_maintainer@example.com"
+prefix: "/usr/local"
+deps: {
+   vim: {origin: "editors/vim", version: "9.2.0204"},
+   tree: {origin: "sysutils/tree", version: "2.2.1"},
+}
+licenselogic: "single"
+licenses: [ "MIT" ]
+# key1=value1
+# key2=value2
+

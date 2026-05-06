@@ -1,0 +1,13 @@
+name: "{{ app_name }}"
+version: "{{ app_version }}"
+origin: "{{ pkg_origin }}"
+comment: "{{ pkg_comment }}"
+arch: "{{ pkg_arch }}"
+www: "{{ pkg_www }}"
+maintainer: "{{ pkg_maintainer }}"
+prefix: "{{ pkg_prefix }}"
+deps: {
+{{#each pkg_dependencies }}{{>dependency dep}},
+{{/each}}}
+licenselogic: "{{ pkg_license_logic }}"
+licenses: [ {{ pkg_licenses }} ]

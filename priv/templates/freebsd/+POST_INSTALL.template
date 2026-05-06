@@ -1,0 +1,35 @@
+APP_NAME="{{ app_name }}"
+CONFIG_DIR="{{ pkg_config_dir }}"
+CONFIG_FILE="$CONFIG_DIR/{{ app_name }}.env"
+PKG_USER_NAME="{{ pkg_user_name }}"
+PKG_USER_UID="{{ pkg_user_uid }}"
+
+if [ -n "${PKG_ROOTDIR}" ] && [ "${PKG_ROOTDIR}" != "/" ]; then
+  PW="/usr/sbin/pw -R ${PKG_ROOTDIR}"
+else
+  PW=/usr/sbin/pw
+fi
+
+echo "===> Creating user."
+if ! ${PW} groupshow ${PKG_USER} >/dev/null 2>&1; then
+  echo "Group: '${PKG_USER}'."
+  ${PW} groupadd ${PKG_USER} -g {{ pkg_user_uid }}
+else
+  echo "Using existing group: '${PKG_USER}'."
+fi
+
+if ! ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then
+  echo "User: '${PKG_USER}'."
+  ${PW} useradd ${PKG_USER} -u {{ pkg_user_uid }} -g ${PKG_USER} -c "${APP_NAME} user" -d /nonexistent -s /usr/sbin/nologin
+else
+  echo "Using existing user: '${PKG_USER}'."
+fi
+
+if [ ! -f $CONFIG_FILE ]
+then
+  echo "===> Creating config in ${CONFIG_FILE}"
+  echo "# ${APP_NAME} config file" > $CONFIG_FILE
+  echo 'FOO="bar"' >> $CONFIG_FILE
+  chmod 0400 $CONFIG_FILE
+  chown PKG_USER:
+fi

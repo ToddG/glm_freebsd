@@ -1,0 +1,18 @@
+---
+version: 2.0.0
+title: custom_templates_/+DISPLAY
+---
+Gleam/Erlang application 'example : 1.0.0' install complete.
+
+To uninstall:
+
+  pkg delete example
+
+Links:
+* https://github.com/toddg/some_repo
+* https://gleam.run/
+* https://www.erlang.org/
+
+# key1=value1
+# key2=value2
+

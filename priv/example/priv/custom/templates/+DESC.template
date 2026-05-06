@@ -1,0 +1,5 @@
+Gleam/Erlang application '{{ app_name }} : {{ app_version }}':
+
+{{ pkg_description }}
+
+

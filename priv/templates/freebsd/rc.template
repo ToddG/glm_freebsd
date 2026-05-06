@@ -1,12 +1,12 @@
 #!/bin/sh
 #
-# PROVIDE: {{ pkg_name }}
+# PROVIDE: {{ app_name }}
 # REQUIRE: DAEMON
 # KEYWORD: shutdown
 
 . /etc/rc.subr
 
-name={{ pkg_name }}
+name={{ app_name }}
 rcvar=${name}_enable
 
 load_rc_config $name
@@ -18,9 +18,9 @@ logfile="/var/log/${name}.log"
 
 export PATH={{ pkg_path_extensions }}:$PATH
 
-{{ pkg_name }}_env_file="{{ pkg_config_dir }}/{{ pkg_env_file }}"
+{{ app_name }}_env_file="{{ pkg_config_dir }}/{{ pkg_env_file }}"
 
-command="{{ pkg_prefix }}/libexec/{{ pkg_name }}/{{ pkg_command }}"
+command="{{ pkg_prefix }}/libexec/{{ app_name }}/{{ pkg_command }}"
 command_args="{{ pkg_command_args }}"
 start_precmd="${name}_prestart"
 start_postcmd="${name}_poststart"
@@ -28,43 +28,36 @@ start_cmd="${name}_start"
 remote_cmd="${name}_remote"
 extra_commands="remote"
 
-{{ pkg_conf_dir_uppercase }}_CONF_DIR="${confdir}"
+{{ pkg_app_name_uppercase }}_CONF_DIR="${confdir}"
 : ${RELEASE_TMP:="/var/run/${name}"}
 : ${ERL_CRASH_DUMP:="${RELEASE_TMP}/${name}_erl_crash.dump"}
 
-{{ pkg_name }}_prestart()
+{{ app_name }}_prestart()
 {
   if [ ! -d "${RELEASE_TMP}" ]; then
     echo "Creating ${RELEASE_TMP}."
     mkdir $RELEASE_TMP
     chmod 740 $RELEASE_TMP
-{{#if pkg_user }}
-    echo "Setting ${RELEASE_TMP} owner to {{ pkg_username }}."
-    chown -R {{ pkg_username }}:{{ pkg_username }} $RELEASE_TMP
-{{/if }}
+    echo "Setting ${RELEASE_TMP} owner to {{ pkg_user_name }}."
+    chown -R {{ pkg_user_name }}:{{ pkg_user_name }} $RELEASE_TMP
   fi
 }
 
-{{ pkg_name }}_poststart()
+{{ app_name }}_poststart()
 {
   pid="$(cat ${pidfile})"
   echo "Service ${name} started as pid ${pid}."
 }
 
-{{ pkg_name }}_start()
+{{ app_name }}_start()
 {
-  export {{ pkg_conf_dir_uppercase }}_CONF_DIR RELEASE_TMP ERL_CRASH_DUMP
+  export {{ pkg_app_name_uppercase }}_CONF_DIR RELEASE_TMP ERL_CRASH_DUMP
 
   rm -f ${pidfile}
-{{#if pkg_user }}
-  daemon -t $name -p $pidfile -f -H -o $logfile -u {{ pkg_username }} {{ pkg_daemon_flags }} env PATH=$PATH $command $command_args
-{{/if}}
-{{#unless pkg_user}}
-  daemon -t $name -p $pidfile -f -H -o $logfile {{ pkg_daemon_flags }} env PATH=$PATH $command $command_args
-{{/unless}}
+  daemon -t $name -p $pidfile -f -H -o $logfile -u {{ pkg_user_name }} {{ pkg_daemon_flags }} env PATH=$PATH $command $command_args
 }
 
-{{ pkg_name }}_remote()
+{{ app_name }}_remote()
 {
   export TERM=xterm
   env PATH=$PATH $command shell
