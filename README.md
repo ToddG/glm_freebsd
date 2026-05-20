@@ -76,7 +76,7 @@ $ cd APPNAME
 
 Add the relevant FreeBSD package info to the ./gleam.toml
 
-See [this example gleam.toml](./priv/example/gleam.toml).
+See [this example gleam.toml](https://github.com/ToddG/glm_freebsd/blob/11baaee2805705182346730b43a31bfb21ad9349/priv/example/gleam.toml#L16).
 
 ```toml
 [freebsd]
@@ -164,7 +164,7 @@ gleam export erlang-shipment
 
 ### Create a FreeBSD package
 
-See the [Makefile](./Makefile) for more examples.
+See the [Makefile](https://github.com/ToddG/glm_freebsd/blob/main/Makefile) for more examples.
 
 ```bash
 # change directories to the glm_freebsd app (this app) so you can run the CLI tool
@@ -237,7 +237,7 @@ name = "example"
 version = "1.0.0"
 ```
 
-The rest of the data comes from the [freebsd] sections. This is fully documented in the [Config type](src/glm_freebsd/packager.gleam):
+The rest of the data comes from the [freebsd] sections. This is fully documented in the [Config type](https://github.com/ToddG/glm_freebsd/blob/11baaee2805705182346730b43a31bfb21ad9349/src/glm_freebsd/packager.gleam#L160-L228):
 
 ```gleam
 /// Configuration object built from the gleam.toml.
