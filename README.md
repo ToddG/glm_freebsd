@@ -3,10 +3,19 @@
 A Gleam CLI tool that allows you to easily package Gleam Applications as FreeBSD packages. The FreeBSD
 packages install as FreeBSD services, including service scripts to manage the application (e.g. start|stop).
 
-This is based on https://github.com/patmaddox/ex_freebsd
-
 [![Package Version](https://img.shields.io/hexpm/v/glm_freebsd)](https://hex.pm/packages/glm_freebsd)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glm_freebsd/)
+
+This tool is inspired by [ex_freebsd](https://github.com/patmaddox/ex_freebsd).
+
+This is an opinionated tool:
+* gleam apps are converted to FreeBSD services wrapped in FreeBSD packages
+* services run as non-root accounts
+* services use external configuration (following 12 factor principals)
+
+Customization is provided via:
+* support for custom templates
+* support for custom key/value pairs
 
 Further documentation can be found at <https://hexdocs.pm/glm_freebsd>.
 
@@ -14,8 +23,8 @@ Further documentation can be found at <https://hexdocs.pm/glm_freebsd>.
 
 ### Dependencies
  
-* gleam >= 1.14
-* erlang >= erlang28
+* [gleam >= 1.14](https://www.freshports.org/lang/gleam/)
+* [erlang >= erlang28](https://www.freshports.org/lang/erlang-runtime28/)
 * make
 
 #### Install gleam and erlang
