@@ -1,4 +1,6 @@
-all: format check test build run package
+all: format check test build run
+
+INSTALL_DIR := /usr/local/bin
 
 .PHONY:path
 path:
@@ -28,9 +30,9 @@ build:
 run:
 	gleam run -- --help
 
-# this target requires FreeBSD to run
-.PHONY:package
-package:
+.PHONY:freebsd_package
+freebsd_package:
+	echo "this target requires FreeBSD to run"
 	rm -rf ./tmp
 	sudo service example stop || true
 	cd ./priv/example; gleam export erlang-shipment
@@ -46,7 +48,6 @@ package:
 birdie:
 	gleam run -m birdie
 
-.PHONY:foo
-foo:
-	echo "CURDIR=$(CURDIR)"
-	echo "PWD=$(PWD)"
+.PHONY:install
+install:
+	sudo gleam run -m gleescript -- --out=$(INSTALL_DIR)

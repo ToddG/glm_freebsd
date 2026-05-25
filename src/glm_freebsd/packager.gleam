@@ -311,9 +311,7 @@ pub fn run(
 
 /// Read the `gleam.toml` file and parse it into toml.
 /// Any valid (parsable) toml will succeed here.
-pub fn load_toml(
-  toml_file: String,
-) -> Result(dict.Dict(String, Toml), AppError) {
+pub fn load_toml(toml_file: String) -> Result(dict.Dict(String, Toml), AppError) {
   toml_file
   |> simplifile.read
   |> result.map_error(UnableToReadTomlFile)
@@ -601,10 +599,7 @@ fn gen_templates(
 }
 
 /// Write the plist include directive to the plist file.
-fn process_plist_include_directive(
-  plist_file,
-  path,
-) -> Result(String, AppError) {
+fn process_plist_include_directive(plist_file, path) -> Result(String, AppError) {
   let line = "@include " <> path <> "\n"
   simplifile.append(plist_file, line)
   |> result.map_error(UnableToAppendPlistFile(plist_file, line, _))
@@ -784,9 +779,7 @@ fn copy_plist_files(
 }
 
 /// Copy the raw templates to a directory so that the user can modify them for their own purposes.
-pub fn copy_raw_templates(
-  target_dir: String,
-) -> Result(List(String), AppError) {
+pub fn copy_raw_templates(target_dir: String) -> Result(List(String), AppError) {
   simplifile.copy_directory("./priv/templates/freebsd", target_dir)
   |> result.map_error(fn(e) { UnableToCopyTemplatesToDirectory(target_dir, e) })
   |> result.map(fn(_) {

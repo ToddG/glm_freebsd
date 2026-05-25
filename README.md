@@ -29,15 +29,14 @@ Further documentation can be found at <https://hexdocs.pm/glm_freebsd>.
 
 #### Install gleam and erlang
 
+Use `latest` to get erlang 28
+
 ```shell
-sudo su
-# use `latest` to get erlang 28
-mkdir -p /usr/local/etc/pkg/repos
-touch /usr/local/etc/pkg/repos/FreeBSD.conf
-`echo 'FreeBSD-ports: { url: "pkg+https://pkg.FreeBSD.org/${ABI}/latest" }' > /usr/local/etc/pkg/repos/FreeBSD.conf
-pkg update
-pkg install -y erlang-runtime28 gleam rebar3
-exit
+sudo mkdir -p /usr/local/etc/pkg/repos
+sudo touch /usr/local/etc/pkg/repos/FreeBSD.conf
+sudo echo 'FreeBSD-ports: { url: "pkg+https://pkg.FreeBSD.org/${ABI}/latest" }' > /usr/local/etc/pkg/repos/FreeBSD.conf
+sudo pkg update
+sudo pkg install -y erlang-runtime28 gleam rebar3
 ```
 
 #### Update path and exec as normal user
@@ -47,6 +46,17 @@ PATH=/usr/local/lib/erlang28/bin:$PATH
 ```
 
 ## Usage
+
+### Install
+
+
+```bash
+# by default, installs to /usr/local/bin:
+sudo make install
+#
+# or specify an install dir
+sudo make install INSTALL_DIR=/bin
+```
 
 ### Help
 
