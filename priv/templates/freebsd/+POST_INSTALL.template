@@ -4,6 +4,7 @@ CONFIG_FILE="$CONFIG_DIR/${APP_NAME}.env"
 PKG_USER_NAME="{{ pkg_user_name }}"
 PKG_USER_UID="{{ pkg_user_uid }}"
 PKG_USER_ADDITIONAL_GROUPS="{{ pkg_user_additional_groups }}"
+LOG_FILE="/var/log/{{ app_name }}.log"
 
 if [ -n "${PKG_ROOTDIR}" ] && [ "${PKG_ROOTDIR}" != "/" ]; then
   PW="/usr/sbin/pw -R ${PKG_ROOTDIR}"
@@ -38,8 +39,16 @@ then
   echo "===> Creating environment config file: ${CONFIG_FILE}"
   echo "# ${APP_NAME} config file" > ${CONFIG_FILE}
   echo 'FOO="bar"' >> ${CONFIG_FILE}
-  chmod 0400 ${CONFIG_FILE}
+  chmod 0440 ${CONFIG_FILE}
   chown ${PKG_USER_NAME} ${CONFIG_FILE}
+fi
+
+if [ ! -f $LOG_FILE ]
+then
+  echo "===> Creating log file: ${LOG_FILE}"
+  touch ${LOG_FILE}
+  chmod 0540 ${LOG_FILE}
+  chown ${PKG_USER_NAME} ${LOG_FILE}
 fi
 
 # enable ${APP_NAME} to run as a service
