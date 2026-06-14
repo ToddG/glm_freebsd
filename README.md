@@ -31,12 +31,18 @@ Further documentation can be found at <https://hexdocs.pm/glm_freebsd>.
 
 Use `latest` to get erlang 28
 
+TODO: is this still required? Sat Jun 13 01:23:55 PM PDT 2026
 ```shell
 sudo mkdir -p /usr/local/etc/pkg/repos
 sudo touch /usr/local/etc/pkg/repos/FreeBSD.conf
 sudo echo 'FreeBSD-ports: { url: "pkg+https://pkg.FreeBSD.org/${ABI}/latest" }' > /usr/local/etc/pkg/repos/FreeBSD.conf
+```
+
+Install erlang28 and gleam
+```shell
 sudo pkg update
-sudo pkg install -y erlang-runtime28 gleam rebar3
+sudo pkg upgrade
+sudo pkg install -y erlang-runtime28 gleam
 ```
 
 #### Update path and exec as normal user
@@ -49,7 +55,6 @@ PATH=/usr/local/lib/erlang28/bin:$PATH
 
 ### Install
 
-
 ```bash
 # by default, installs to /usr/local/bin:
 sudo make install
@@ -61,7 +66,11 @@ sudo make install INSTALL_DIR=/bin
 ### Help
 
 ```bash
-gleam run -- --help
+glm_freebsd --help
+```
+
+Outputs
+```
    Compiled in 0.05s
     Running glm_freebsd.main
 package
@@ -97,6 +106,7 @@ Add the relevant FreeBSD package info to the ./gleam.toml
 
 See [this example gleam.toml](https://github.com/ToddG/glm_freebsd/blob/11baaee2805705182346730b43a31bfb21ad9349/priv/example/gleam.toml#L16).
 
+[APPNAME]/gleam.toml
 ```toml
 [freebsd]
 pkg_origin = "example_company/example"
@@ -175,29 +185,40 @@ value = "/tmp/example_temp_dir"
 ### Create an erlang-shipment
 
 ```bash
-gleam format
-gleam check
-gleam test
-gleam export erlang-shipment
+[APPNAME] $ gleam export erlang-shipment
 ```
 
 ### Create a FreeBSD package
 
 See the [Makefile](https://github.com/ToddG/glm_freebsd/blob/main/Makefile) for more examples.
 
+The bad news is that a wart in escript is that it doesn't include the priv files. So the
+`glm_freebsd/priv/templates/freebsd` are not included  in the `glm_freebsd` executable in /usr/local/bin.
+This template directory must be made available to the `glm_freebsd` command.
+
+The good news is that because of this decoupling, you can copy these files into your local application, modify them,
+and then reference them in the `glm_freebsd` command (below). You can also add arbitrary key/values to the
+`gleam.toml` file, and reference them in your modified templates:
+
+    [[freebsd.pairs]]
+    key = "key1"
+    value = "value1"
+
 ```bash
-# change directories to the glm_freebsd app (this app) so you can run the CLI tool
-cd [glm_freebsd repo directory]
-
 # run this cli tool
-gleam run -- -a [PATH TO YOUR TARGET APP TO PACKAGE] -s [PATH TO A STAGING DIRECTORY] -o [PATH TO AN OUTPUT DIRECTORY TO PUT THE PACKAGE]
+glm_freebsd -a [PATH TO YOUR TARGET APP TO PACKAGE] -s [PATH TO A STAGING DIRECTORY] -o [PATH TO AN OUTPUT DIRECTORY TO PUT THE PACKAGE] -t [PATH TO THE TEMPLATES]
 
-# install the generated package 
+# to examine the package
+tar -tvf [OUTPUT DIR]/[APP_NAME-VERSION].pkg 2>&1 | tee package.txt
+
+# in a target FreeBSD OS instance, install the generated package 
 sudo pkg install -y [OUTPUT DIR]/[APP_NAME-VERSION].pkg
 
 # start the service
 sudo service [APP_NAME] start
 ```
+
+Note: the start command will start your gleam code as the specified user.
 
 ### Create a FreeBSD package with custom templates
 

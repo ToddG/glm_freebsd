@@ -39,6 +39,8 @@ pkg_config_dir = \"/tmp/example\"
 pkg_env_file = \"example.env\"
 pkg_user_name = \"example\"
 pkg_user_uid = \"1234\"
+# you should have a very good reason to run a service as a user in wheel
+pkg_user_additional_groups = \"wheel\"
 pkg_proc_name = \"beam.smp\"
 pkg_path_extensions = \"/usr/local/lib/erlang28/bin\"
 pkg_var_dir=\"/var/example\"

@@ -1,8 +1,9 @@
 APP_NAME="{{ app_name }}"
 CONFIG_DIR="{{ pkg_config_dir }}"
-CONFIG_FILE="$CONFIG_DIR/{{ app_name }}.env"
+CONFIG_FILE="$CONFIG_DIR/${APP_NAME}.env"
 PKG_USER_NAME="{{ pkg_user_name }}"
 PKG_USER_UID="{{ pkg_user_uid }}"
+PKG_USER_ADDITIONAL_GROUPS="{{ pkg_user_additional_groups }}"
 
 if [ -n "${PKG_ROOTDIR}" ] && [ "${PKG_ROOTDIR}" != "/" ]; then
   PW="/usr/sbin/pw -R ${PKG_ROOTDIR}"
@@ -11,25 +12,37 @@ else
 fi
 
 echo "===> Creating user."
-if ! ${PW} groupshow ${PKG_USER} >/dev/null 2>&1; then
-  echo "Group: '${PKG_USER}'."
-  ${PW} groupadd ${PKG_USER} -g {{ pkg_user_uid }}
+if ! ${PW} groupshow ${PKG_USER_NAME} >/dev/null 2>&1; then
+  echo "Creating group: ${PW} groupadd ${PKG_USER_NAME} -g ${PKG_USER_UID}"
+  ${PW} groupadd ${PKG_USER_NAME} -g ${PKG_USER_UID}
 else
-  echo "Using existing group: '${PKG_USER}'."
+  echo "Using existing group: '${PKG_USER_NAME}'."
 fi
 
-if ! ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then
-  echo "User: '${PKG_USER}'."
-  ${PW} useradd ${PKG_USER} -u {{ pkg_user_uid }} -g ${PKG_USER} -c "${APP_NAME} user" -d /nonexistent -s /usr/sbin/nologin
+if ! ${PW} usershow ${PKG_USER_NAME} >/dev/null 2>&1; then
+  echo "Creating user: ${PW} useradd ${PKG_USER_NAME} -u ${PKG_USER_UID} -g ${PKG_USER_NAME} -G ${PKG_USER_ADDITIONAL_GROUPS} -c "${APP_NAME} service account" -d /nonexistent -s /usr/sbin/nologin"
+  ${PW} useradd ${PKG_USER_NAME} -u ${PKG_USER_UID} -g ${PKG_USER_NAME} -G ${PKG_USER_ADDITIONAL_GROUPS} -c "${APP_NAME} service account" -d /nonexistent -s /usr/sbin/nologin
 else
-  echo "Using existing user: '${PKG_USER}'."
+  echo "Using existing user: '${PKG_USER_NAME}'."
+fi
+
+if [ ! -d $CONFIG_DIR ]
+then
+  echo "===> Creating config dir ${CONFIG_DIR}"
+  mkdir -p ${CONFIG_DIR}
+  chown -R ${PKG_USER_NAME} ${CONFIG_DIR}
 fi
 
 if [ ! -f $CONFIG_FILE ]
 then
-  echo "===> Creating config in ${CONFIG_FILE}"
-  echo "# ${APP_NAME} config file" > $CONFIG_FILE
-  echo 'FOO="bar"' >> $CONFIG_FILE
-  chmod 0400 $CONFIG_FILE
-  chown PKG_USER:
+  echo "===> Creating environment config file: ${CONFIG_FILE}"
+  echo "# ${APP_NAME} config file" > ${CONFIG_FILE}
+  echo 'FOO="bar"' >> ${CONFIG_FILE}
+  chmod 0400 ${CONFIG_FILE}
+  chown ${PKG_USER_NAME} ${CONFIG_FILE}
 fi
+
+# enable ${APP_NAME} to run as a service
+sysrc ${APP_NAME}=Yes
+# start ${APP_NAME} as a service
+service ${APP_NAME} start

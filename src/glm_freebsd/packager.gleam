@@ -167,6 +167,8 @@ pub type Config {
     pkg_user_name: String,
     /// Freebsd package user uid, used in +POST_INSTALL and rc, required (no default).
     pkg_user_uid: String,
+    /// Freebsd package user groups as comma separated list, used in +POST_INSTALL, optional, defaults to "".
+    pkg_user_additional_groups: String,
     /// Freebsd package long description, used in +DESC, required (no default).
     pkg_description: String,
     /// Freebsd package maintainer email address, used in +MANIFEST, required (no default).
@@ -330,6 +332,11 @@ pub fn new_config(toml: Dict(String, Toml)) -> Result(Config, AppError) {
     "freebsd.pkg_user_name",
     app_name,
   ))
+  use pkg_user_additional_groups <- result.try(get_optional_string(
+    toml,
+    "freebsd.pkg_user_additional_groups",
+    "",
+  ))
   use pkg_user_uid <- result.try(get_string(toml, "freebsd.pkg_user_uid"))
   use pkg_description <- result.try(get_string(toml, "freebsd.pkg_description"))
   use pkg_maintainer <- result.try(get_string(toml, "freebsd.pkg_maintainer"))
@@ -403,28 +410,29 @@ pub fn new_config(toml: Dict(String, Toml)) -> Result(Config, AppError) {
     Config(
       app_name:,
       app_version:,
-      pkg_user_name:,
-      pkg_user_uid:,
-      pkg_description:,
-      pkg_maintainer:,
-      pkg_dependencies:,
-      pkg_proc_name:,
-      pkg_config_dir:,
-      pkg_path_extensions:,
-      pkg_var_dir:,
-      pkg_env_file:,
-      pkg_prefix:,
+      pkg_arch:,
       pkg_command:,
       pkg_command_args:,
-      pkg_daemon_flags:,
-      pkg_plist_lines:,
-      pkg_origin:,
       pkg_comment:,
-      pkg_arch:,
-      pkg_www:,
+      pkg_config_dir:,
+      pkg_daemon_flags:,
+      pkg_dependencies:,
+      pkg_description:,
+      pkg_env_file:,
       pkg_license_logic:,
       pkg_licenses:,
+      pkg_maintainer:,
+      pkg_origin:,
       pkg_pairs:,
+      pkg_path_extensions:,
+      pkg_plist_lines:,
+      pkg_prefix:,
+      pkg_proc_name:,
+      pkg_user_additional_groups:,
+      pkg_user_name:,
+      pkg_user_uid:,
+      pkg_var_dir:,
+      pkg_www:,
     )
   Ok(config)
 }
@@ -912,6 +920,10 @@ fn new_context(config: Config) -> ctx.Value {
       ctx.Prop("pkg_proc_name", ctx.Str(config.pkg_proc_name)),
       ctx.Prop("pkg_user_name", ctx.Str(config.pkg_user_name)),
       ctx.Prop("pkg_user_uid", ctx.Str(config.pkg_user_uid)),
+      ctx.Prop(
+        "pkg_user_additional_groups",
+        ctx.Str(config.pkg_user_additional_groups),
+      ),
       ctx.Prop("pkg_var_dir", ctx.Str(config.pkg_var_dir)),
     ],
     pairs_prop_list,

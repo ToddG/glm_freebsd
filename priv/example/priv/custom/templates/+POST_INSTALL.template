@@ -2,6 +2,7 @@ PKG_NAME="{{ app_name }}"
 CONFIG_DIR="{{ pkg_config_dir }}"
 CONFIG_FILE="${CONFIG_DIR}/{{ pkg_env_file }}.CUSTOM"
 CUSTOM_TEMP_DIR="{{ pair_custom_temp_dir }}"
+PKG_USER_ADDITIONAL_GROUPS="{{ pkg_user_additional_groups }}"
 
 mkdir -p ${CUSTOM_TEMP_DIR}
 touch ${CUSTOM_TEMP_DIR}/dummyfile.txt
@@ -24,7 +25,7 @@ fi
 
 if ! ${PW} usershow ${PKG_USER} >/dev/null 2>&1; then
   echo "User: '${PKG_USER}'."
-  ${PW} useradd ${PKG_USER} -u {{ pkg_user_uid }} -g ${PKG_USER} -c "${PKG_NAME} user" -d /nonexistent -s /usr/sbin/nologin
+  ${PW} useradd ${PKG_USER} -u ${PKG_USER_UID} -g ${PKG_USER} -G ${PKG_USER_ADDITIONAL_GROUPS} -c "${APP_NAME} service account" -d /nonexistent -s /usr/sbin/nologin
 else
   echo "Using existing user: '${PKG_USER}'."
 fi

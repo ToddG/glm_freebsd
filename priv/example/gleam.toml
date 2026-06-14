@@ -32,6 +32,8 @@ pkg_config_dir = "/tmp/example"
 pkg_env_file = "example.env"
 pkg_user_name = "example"
 pkg_user_uid = "1234"
+# comma separated list
+pkg_user_additional_groups = "wheel"
 pkg_proc_name = "/usr/local/lib/erlang28/*/bin/beam.smp"
 pkg_path_extensions = "/usr/local/lib/erlang28/bin"
 pkg_var_dir = "/var/example"
@@ -40,8 +42,8 @@ pkg_command = "entrypoint.sh"
 pkg_command_args = "run"
 pkg_daemon_flags = ""
 pkg_plist_lines = [
-    { type = "file", src = "priv/data/wibble.txt", dest = "/usr/local/wibble/wibble.txt", mode = "0700", owner = "", group = "" },
-    { type = "directory", src_dir = "priv/data/wobble_dir", dest_dir = "/usr/local/wobble", mode = "0700", owner = "", group = "" },
+    { type = "file", src = "../../example-data-dir/data/wibble.txt", dest = "/usr/local/wibble/wibble.txt", mode = "0700", owner = "", group = "" },
+    { type = "directory", src_dir = "../../example-data-dir/data/wobble_dir", dest_dir = "/usr/local/wobble", mode = "0700", owner = "", group = "" },
     { type = "dir_directive", path = "/usr/local/wibble" },
     { type = "dir_directive", path = "/usr/local/wobble" },
 ]

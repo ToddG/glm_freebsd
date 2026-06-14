@@ -80,7 +80,10 @@ pub fn main() -> Nil {
         )
       {
         Error(e) -> io.println_error(e |> string.inspect)
-        Ok(o) -> io.println(o)
+        Ok(o) -> {
+          io.println(o)
+          io.println("package created")
+        }
       }
       Nil
     }

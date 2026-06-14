@@ -36,7 +36,7 @@ freebsd_package:
 	rm -rf ./tmp
 	sudo service example stop || true
 	cd ./priv/example; gleam export erlang-shipment
-	gleam run -- -a $(PWD)/priv/example -s $(PWD)/tmp/staging -t $(PWD)/priv/example/priv/custom/templates -o $(PWD)/tmp/output
+	glm_freebsd -a $(PWD)/priv/example -s $(PWD)/tmp/staging -t $(PWD)/priv/example/priv/custom/templates -o $(PWD)/tmp/output
 	sudo pkg install -y $(PWD)/tmp/output/example-1.0.0.pkg
 	sudo service example start
 	sudo service example status
@@ -50,4 +50,5 @@ birdie:
 
 .PHONY:install
 install:
+	echo "this target requires FreeBSD to run"
 	sudo gleam run -m gleescript -- --out=$(INSTALL_DIR)
